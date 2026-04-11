@@ -1,2 +1,110 @@
+import java.util.*;
+
 public class Dijkstra_Algorithm {
+
+    private LSA_structure network;
+    private String source_node;
+    private Map<String, Integer> distances;
+    private Map<String, String> previous_node;
+    private Set<String> visited;
+
+    public Dijkstra_Algorithm(LSA_structure network, String source_node) {
+        this.network = network;
+        this.source_node = source_node;
+        this.distances = new HashMap<>();
+        this.previous_node = new HashMap<>();
+        this.visited = new HashSet<>();
+
+
+        for (String node : network.get_all_nodes()) {
+            distances.put(node, Integer.MAX_VALUE);
+        }
+        distances.put(source_node, 0);
+    }
+
+
+    public void compute_all() {
+        run_Dijkstra(false);
+        print_summary_table();
+    }
+
+    public void single_step() {
+        run_Dijkstra(true);
+        print_summary_table();
+    }
+
+    private void run_Dijkstra(boolean is_single_step) {
+        Scanner scanner = new Scanner(System.in);
+        int total_nodes_size = network.get_all_nodes().size();
+        // visit all the node
+        while (visited.size() < total_nodes_size) {
+            String visit_node = get_closest_unvisited_node();
+            if (visit_node == null) break;
+
+            visited.add(visit_node);
+            // single step
+            if (is_single_step && !visit_node.equals(source_node)) {
+                System.out.println("Found " + visit_node + ": Path: " + get_path(visit_node) + " Cost: " + distances.get(visit_node) + " [press Enter to continue]");
+                scanner.nextLine();
+            }
+
+            // get the visit node all neighbors edge
+            Map<String, Integer> neighbors = network.get_edge(visit_node);
+            if (neighbors != null) {
+                for (Map.Entry<String, Integer> entry : neighbors.entrySet()) {
+                    // get neighbors edge and weight
+                    String neighbors_edge = entry.getKey();
+                    int weight = entry.getValue();
+                    // if not visited yet, check the weight and update
+                    if (!visited.contains(neighbors_edge)) {
+                        int new_distences = distances.get(visit_node) + weight;
+                        if (new_distences < distances.get(neighbors_edge)) {
+                            distances.put(neighbors_edge, new_distences);
+                            previous_node.put(neighbors_edge, visit_node);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // search the unvisited node
+    private String get_closest_unvisited_node() {
+        String closest_node = null;
+        int min_distance = Integer.MAX_VALUE;
+
+        for (String node : distances.keySet()) {
+            if (!visited.contains(node) && distances.get(node) < min_distance) {
+                min_distance = distances.get(node);
+                closest_node = node;
+            }
+        }
+        return closest_node;
+    }
+
+    // return the path from source to end node
+    private String get_path(String target_node) {
+        List<String> path = new ArrayList<>();
+        for (String current_node = target_node; current_node != null; current_node = previous_node.get(current_node)) {
+            path.add(current_node);
+        }
+        if (!path.contains(source_node)) path.add(source_node);
+
+        Collections.reverse(path);
+        return String.join(">", path);
+    }
+
+    // print path
+    private void print_summary_table() {
+        System.out.println("\nSource " + source_node + ":");
+        List<String> nodes = new ArrayList<>(distances.keySet());
+        Collections.sort(nodes);
+
+        for (String node : nodes) {
+            if (node.equals(source_node)) continue;
+            String path = get_path(node);
+            Integer cost = distances.get(node);
+            System.out.println(node + ": Path: " + path + " Cost: " + (cost == Integer.MAX_VALUE ? "Unreachable" : cost));
+        }
+    }
 }
