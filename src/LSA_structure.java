@@ -105,12 +105,13 @@ public class LSA_structure {
 
     // print network
     public void print_network() {
+        // print node
         for (Map.Entry<String, Map<String, Integer>> entry : network.entrySet()) {
             String node = entry.getKey();
             Map<String, Integer> neighbors = entry.getValue();
 
             System.out.print(node + " -> ");
-
+            // print edge
             for (Map.Entry<String, Integer> neighborEntry : neighbors.entrySet()) {
                 System.out.print(neighborEntry.getKey() + "(" + neighborEntry.getValue() + ") ");
             }
