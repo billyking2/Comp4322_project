@@ -1,45 +1,55 @@
+import ui.LSRDisplay;
+
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class Lsa_file {
 
-    private String filename;
+    private File file;
     private LSA_structure network;
+    private LSRDisplay display;
 
-    public Lsa_file(String filename) {
-        this.filename = filename;
+    public Lsa_file(final LSRDisplay display) {
+        this.display = display;
         this.network = new LSA_structure();
+
+        display.onSelectFile(this::load_file);
     }
 
-    public LSA_structure load_file() throws IOException {
-        File file = new File(filename);
-
+    public void load_file(final File file) {
         // if file no found, return null
         if (!file.exists()) {
-            System.out.println("error in load_file: file not found");
-            return null;
+            display.updateStatus("Error in load_file: %s not found".formatted(file.getAbsolutePath()));
+            return;
         }
 
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String line;
+        this.file = file;
 
-        while ((line = reader.readLine()) != null) {
-            line = line.trim();
-            if (line.isEmpty()) continue;
+        String line = "";
+        display.clearFileContent();
 
-            parse_line(line);
+        try {
+            final BufferedReader reader = new BufferedReader(new FileReader(file));
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                parse_line(line);
+                display.printFileLine(line);
+            }
+            reader.close();
+        } catch (IOException e) {
+            display.updateStatus("Error parsing line: %s".formatted(line));
+            display.clearFileContent();
+            return;
         }
 
-        reader.close();
-        System.out.println("Loaded network from: " + filename);
-        return network;
+        display.updateStatus("Loaded network from %s".formatted(file.getAbsolutePath()));
     }
 
-
-    private void parse_line(String line) {
+    private void parse_line(final String line) {
         String[] parts = line.split("\\s+"); // Split by whitespace
 
         // get source node
@@ -62,9 +72,8 @@ public class Lsa_file {
         }
     }
 
-
     public void save_file() throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 
             List<String> all_nodes = network.get_all_nodes();
             Collections.sort(all_nodes);
@@ -88,10 +97,8 @@ public class Lsa_file {
             }
         }
 
-        System.out.println("Saved network to: " + filename);
+        display.updateStatus("Saved network to: %s".formatted(file.getAbsolutePath()));
     }
-
-
 
     public boolean add_node_to_file(String nodeId) throws IOException {
         boolean success = network.add_node(nodeId);

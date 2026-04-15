@@ -2,7 +2,7 @@ import java.util.*;
 
 public class LSA_structure {
 
-    private Map<String, Map<String, Integer>> network;
+    private final Map<String, Map<String, Integer>> network;
 
     public LSA_structure() {
         this.network = new HashMap<>();
