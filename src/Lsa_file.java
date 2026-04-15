@@ -1,3 +1,4 @@
+import ui.FileProcessState;
 import ui.LSRDisplay;
 
 import java.io.*;
@@ -9,17 +10,49 @@ public class Lsa_file {
 
     private File file;
     private LSA_structure network;
-    private LSRDisplay display;
+    private final LSRDisplay display;
+    private Dijkstra_Algorithm algo;
 
     public Lsa_file(final LSRDisplay display) {
         this.display = display;
-        this.network = new LSA_structure();
+        this.network = new LSA_structure(display);
+        this.algo = null;
 
         display.onSelectFile(this::load_file);
+        display.onComputeAll(() -> {
+            if (algo == null) {
+                display.updateStatus("Not performing action: Please select a file and starting node first.");
+                return;
+            }
+            algo.compute_all();
+        });
+        display.onSingleStep(() -> {
+            if (algo == null) {
+                display.updateStatus("Not performing action: Please select a file and starting node first.");
+                return;
+            }
+            algo.single_step();
+        });
+        display.onSelectSource(n -> {
+            if (n.length() != 1) {
+                return;
+            }
+            this.algo = new Dijkstra_Algorithm(network, n, display);
+        });
+        display.onReset(this::reset);
+    }
+
+    public void reset() {
+        display.clearFileContent();
+        display.clearTopologyUpdates();
+        display.setFileState(FileProcessState.LOADED);
+
+        this.algo = null;
+        this.network = new LSA_structure(display);
     }
 
     public void load_file(final File file) {
-        // if file no found, return null
+
         if (!file.exists()) {
             display.updateStatus("Error in load_file: %s not found".formatted(file.getAbsolutePath()));
             return;
@@ -40,9 +73,11 @@ public class Lsa_file {
                 display.printFileLine(line);
             }
             reader.close();
+            display.setFileState(FileProcessState.LOADED);
         } catch (IOException e) {
             display.updateStatus("Error parsing line: %s".formatted(line));
             display.clearFileContent();
+            display.setFileState(FileProcessState.ERROR);
             return;
         }
 
@@ -55,6 +90,7 @@ public class Lsa_file {
         // get source node
         String source_node = parts[0].replace(":", "");
 
+        display.addSourceOption(source_node);
         // parse each part
         for (String part : parts) {
             String[] linkInfo = part.split(":");
@@ -72,7 +108,7 @@ public class Lsa_file {
         }
     }
 
-    public void save_file() throws IOException {
+    public void save_file() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 
             List<String> all_nodes = network.get_all_nodes();
@@ -95,6 +131,10 @@ public class Lsa_file {
                 writer.write(line.toString());
                 writer.newLine();
             }
+        } catch (IOException e) {
+            display.updateStatus("Error while writing file: %s".formatted(file.getAbsolutePath()));
+            display.clearFileContent();
+            return;
         }
 
         display.updateStatus("Saved network to: %s".formatted(file.getAbsolutePath()));
@@ -104,7 +144,7 @@ public class Lsa_file {
         boolean success = network.add_node(nodeId);
         if (success) {
             save_file();
-            System.out.println("Node " + nodeId + " added and saved to file");
+            display.updateStatus("Node " + nodeId + " added and saved to file");
         }
         return success;
     }
@@ -113,15 +153,14 @@ public class Lsa_file {
     public void add_link_to_file(String from, String to, int weight) throws IOException {
         network.add_edge(from, to, weight);
         save_file();
-        System.out.println("Link " + from + "-" + to + " (cost:" + weight + ") added and saved");
+        display.updateStatus("Link " + from + "-" + to + " (cost:" + weight + ") added and saved");
     }
-
 
     public boolean remove_link_to_file(String from, String to) throws IOException {
         boolean success = network.remove_edge(from, to);
         if (success) {
             save_file();
-            System.out.println("Link " + from + "-" + to + " removed and saved");
+            display.updateStatus("Link " + from + "-" + to + " removed and saved");
         }
         return success;
     }
@@ -130,11 +169,8 @@ public class Lsa_file {
         boolean success = network.remove_node(nodeId);
         if (success) {
             save_file();
-            System.out.println("Node " + nodeId + " removed and saved");
+            display.updateStatus("Node " + nodeId + " removed and saved");
         }
         return success;
     }
-
-
-
 }

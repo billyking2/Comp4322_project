@@ -27,13 +27,14 @@ public final class LSRDisplay {
         chooser = new JFileChooser(System.getProperty("user.dir"));
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setFileFilter(new FileNameExtensionFilter("LSA Files", "lsa"));
+
     }
 
     public LSRDisplay() {
         this("LSR Display");
     }
 
-    public void showNodeAddInfo(final String message, final NodeInfo infoType) {
+    public void showNodeInfo(final String message, final NodeInfo infoType) {
         final JTextField textField = switch (infoType) {
             case NODE_ADD -> form.nodeAddField;
             case NODE_DELETE -> form.nodeDelField;
@@ -61,7 +62,15 @@ public final class LSRDisplay {
     }
 
     private void addEvent(final JButton component, final Runnable callback) {
-        component.addActionListener(_ -> callback.run());
+        component.addActionListener(x -> callback.run());
+    }
+
+    public void setFileState(final FileProcessState fileProcessState) {
+        form.statusLabel.setText(switch(fileProcessState) {
+            case ERROR -> "File Loading Error";
+            case LOADED ->  "File Loaded Successfully";
+            case REMOVED ->  "Removed File";
+        });
     }
 
     public void onSingleStep(final Runnable callback) {
@@ -77,7 +86,7 @@ public final class LSRDisplay {
     }
 
     public void onSelectFile(final Consumer<File> callback) {
-        form.loadFileButton.addActionListener(_ -> {
+        form.loadFileButton.addActionListener(x -> {
 
             if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                 final File selectedFile = chooser.getSelectedFile();
@@ -94,16 +103,14 @@ public final class LSRDisplay {
         });
     }
 
-    public void addSourceOptions(final String[] options) {
-        for (final String option : options) {
-            form.sourceComboBox.addItem(option);
-        }
+    public void addSourceOption(final String option) {
+        form.sourceComboBox.addItem(option);
     }
 
     public void clearTopologyUpdates() {
-        form.nodeAddField.setText("");
-        form.nodeDelField.setText("");
-        form.nodeBrokenField.setText("");
+        form.nodeAddField.setText(null);
+        form.nodeDelField.setText(null);
+        form.nodeBrokenField.setText(null);
     }
 }
 

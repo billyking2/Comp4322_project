@@ -1,11 +1,15 @@
+import ui.LSRDisplay;
+
 import java.util.*;
 
 public class LSA_structure {
 
     private final Map<String, Map<String, Integer>> network;
+    private final LSRDisplay display;
 
-    public LSA_structure() {
+    public LSA_structure(LSRDisplay display) {
         this.network = new HashMap<>();
+        this.display = display;
     }
 
     // add new node (add success return true)
@@ -13,9 +17,8 @@ public class LSA_structure {
         if (network.putIfAbsent(nodeId, new HashMap<>()) == null){
             return true;
         }
-        System.out.println("error in add_node: add node fail");
+        display.updateStatus("error in add_node: add node fail");
         return false;
-
     }
 
     // add bidirectional edge
@@ -54,7 +57,7 @@ public class LSA_structure {
             return true;
         }
         else {
-            System.out.println("error in remove_edge: remove_edge fail at least in one side");
+            display.updateStatus("error in remove_edge: remove_edge fail at least in one side");
             return false;
         }
     }
@@ -66,14 +69,14 @@ public class LSA_structure {
 
         // return false if node not exist
         if (edges == null) {
-            System.out.println("error in remove_node: node not found");
+            display.updateStatus("error in remove_node: node not found");
             return false;
         }
 
         for (String neighbor : edges.keySet()) {
             boolean edgeRemoved = remove_edge(node, neighbor);
             if (!edgeRemoved) {
-                System.out.println("error removing edge between " + node + " and " + neighbor);
+                display.updateStatus("error removing edge between " + node + " and " + neighbor);
             }
         }
 
@@ -87,7 +90,7 @@ public class LSA_structure {
     public Map<String, Integer> get_edge(String node) {
         Map<String, Integer> neighbors_in_node = network.get(node);
         if (neighbors_in_node == null ){
-            System.out.println("error in get_neighbors: node not exist");
+            display.updateStatus("error in get_neighbors: node not exist");
             return null;
         }
         return neighbors_in_node;
@@ -107,15 +110,16 @@ public class LSA_structure {
     public void print_network() {
         // print node
         for (Map.Entry<String, Map<String, Integer>> entry : network.entrySet()) {
-            String node = entry.getKey();
+            StringBuilder node = new StringBuilder(entry.getKey());
             Map<String, Integer> neighbors = entry.getValue();
 
-            System.out.print(node + " -> ");
+            node.append(" -> ");
             // print edge
             for (Map.Entry<String, Integer> neighborEntry : neighbors.entrySet()) {
-                System.out.print(neighborEntry.getKey() + "(" + neighborEntry.getValue() + ") ");
+                node.append(neighborEntry.getKey()).append("(").append(neighborEntry.getValue()).append(") ");
             }
-            System.out.println();
+
+            display.updateStatus(node.toString());
         }
     }
 

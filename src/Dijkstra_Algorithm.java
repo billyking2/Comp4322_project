@@ -1,3 +1,6 @@
+import ui.LSRDisplay;
+import ui.NodeInfo;
+
 import java.util.*;
 
 public class Dijkstra_Algorithm {
@@ -7,21 +10,21 @@ public class Dijkstra_Algorithm {
     private Map<String, Integer> distances;
     private Map<String, String> previous_node;
     private Set<String> visited;
+    private final LSRDisplay display;
 
-    public Dijkstra_Algorithm(LSA_structure network, String source_node) {
+    public Dijkstra_Algorithm(LSA_structure network, String source_node, final LSRDisplay display) {
         this.network = network;
         this.source_node = source_node;
         this.distances = new HashMap<>();
         this.previous_node = new HashMap<>();
         this.visited = new HashSet<>();
-
+        this.display = display;
 
         for (String node : network.get_all_nodes()) {
             distances.put(node, Integer.MAX_VALUE);
         }
         distances.put(source_node, 0);
     }
-
 
     public void compute_all() {
         run_Dijkstra(false);
@@ -44,8 +47,8 @@ public class Dijkstra_Algorithm {
             visited.add(visit_node);
             // single step
             if (is_single_step && !visit_node.equals(source_node)) {
-                System.out.println("Found " + visit_node + ": Path: " + get_path(visit_node) + " Cost: " + distances.get(visit_node) + " [press Enter to continue]");
-                scanner.nextLine();
+                display.showNodeInfo(visit_node, NodeInfo.NODE_ADD);
+                display.updateStatus("Found " + visit_node + ": Path: " + get_path(visit_node) + " Cost: " + distances.get(visit_node));
             }
 
             // get the visit node all neighbors edge
@@ -96,7 +99,7 @@ public class Dijkstra_Algorithm {
 
     // print path
     private void print_summary_table() {
-        System.out.println("\nSource " + source_node + ":");
+        StringBuilder builder = new StringBuilder("\nSource " + source_node + ":");
         List<String> nodes = new ArrayList<>(distances.keySet());
         Collections.sort(nodes);
 
@@ -104,7 +107,14 @@ public class Dijkstra_Algorithm {
             if (node.equals(source_node)) continue;
             String path = get_path(node);
             Integer cost = distances.get(node);
-            System.out.println(node + ": Path: " + path + " Cost: " + (cost == Integer.MAX_VALUE ? "Unreachable" : cost));
+           builder.append(node)
+                   .append(": Path: ")
+                   .append(path)
+                   .append(" Cost: ")
+                   .append(cost == Integer.MAX_VALUE ? "Unreachable" : cost)
+                   .append('\n');
         }
+
+        display.updateStatus(builder.toString());
     }
 }
