@@ -22,22 +22,20 @@ public class Dijkstra_Algorithm {
 
         for (String node : network.get_all_nodes()) {
             distances.put(node, Integer.MAX_VALUE);
+            //distance={A inf,B inf ,C inf,D inf,E inf....}
         }
         distances.put(source_node, 0);
     }
 
     public void compute_all() {
         run_Dijkstra(false);
-        print_summary_table();
     }
 
     public void single_step() {
         run_Dijkstra(true);
-        print_summary_table();
     }
 
     private void run_Dijkstra(boolean is_single_step) {
-        Scanner scanner = new Scanner(System.in);
         int total_nodes_size = network.get_all_nodes().size();
         // visit all the node
         while (visited.size() < total_nodes_size) {
@@ -47,10 +45,17 @@ public class Dijkstra_Algorithm {
             visited.add(visit_node);
             // single step
             if (is_single_step && !visit_node.equals(source_node)) {
+                update_neighbors(visit_node);
                 display.showNodeInfo(visit_node, NodeInfo.NODE_ADD);
                 display.updateStatus("Found " + visit_node + ": Path: " + get_path(visit_node) + " Cost: " + distances.get(visit_node));
+                return;
             }
+            update_neighbors(visit_node);
+        }
+        print_summary_table();
+    }
 
+    private void update_neighbors(String visit_node){
             // get the visit node all neighbors edge
             Map<String, Integer> neighbors = network.get_edge(visit_node);
             if (neighbors != null) {
@@ -68,7 +73,6 @@ public class Dijkstra_Algorithm {
                     }
                 }
             }
-        }
     }
 
     // search the unvisited node
@@ -81,6 +85,9 @@ public class Dijkstra_Algorithm {
                 min_distance = distances.get(node);
                 closest_node = node;
             }
+        }
+        if (closest_node != null) {
+            display.updateStatus("closest_node: "+closest_node);
         }
         return closest_node;
     }
@@ -99,7 +106,7 @@ public class Dijkstra_Algorithm {
 
     // print path
     private void print_summary_table() {
-        StringBuilder builder = new StringBuilder("\nSource " + source_node + ":");
+        StringBuilder builder = new StringBuilder("\nSource " + source_node + ": \n ");
         List<String> nodes = new ArrayList<>(distances.keySet());
         Collections.sort(nodes);
 
