@@ -1,0 +1,21 @@
+package ui;
+
+import javax.swing.*;
+
+public final class LSRDisplayForm {
+    JPanel contentPanel;
+    JButton singleStepButton;
+    JButton computeAllButton;
+    JButton loadFileButton;
+    JButton resetButton;
+    JPanel topUpdatePanel;
+    JTextField nodeAddField;
+    JTextField nodeDelField;
+    JTextField nodeBrokenField;
+    JPanel filePanel;
+    JLabel statusLabel;
+    JTextArea fileTextArea;
+    JComboBox<String> sourceComboBox;
+    JTextArea statusTextArea;
+
+}
