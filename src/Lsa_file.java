@@ -82,6 +82,7 @@ public class Lsa_file {
         }
 
         display.updateStatus("Loaded network from %s".formatted(file.getAbsolutePath()));
+        display.pack();
     }
 
     private void parse_line(final String line) {

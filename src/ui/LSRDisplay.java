@@ -27,12 +27,13 @@ public final class LSRDisplay {
         chooser = new JFileChooser(System.getProperty("user.dir"));
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setFileFilter(new FileNameExtensionFilter("LSA Files", "lsa"));
-
     }
 
     public LSRDisplay() {
         this("LSR Display");
     }
+
+    public void pack() {frame.pack();}
 
     public void showNodeInfo(final String message, final NodeInfo infoType) {
         final JTextField textField = switch (infoType) {
@@ -87,7 +88,6 @@ public final class LSRDisplay {
 
     public void onSelectFile(final Consumer<File> callback) {
         form.loadFileButton.addActionListener(x -> {
-
             if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                 final File selectedFile = chooser.getSelectedFile();
                 callback.accept(selectedFile);

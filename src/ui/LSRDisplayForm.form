@@ -45,6 +45,7 @@
                       <dropMode value="USE_SELECTION"/>
                       <editable value="false"/>
                       <foreground color="-16777216"/>
+                      <lineWrap value="true"/>
                     </properties>
                   </component>
                 </children>
@@ -77,7 +78,7 @@
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                <preferred-size width="375" height="139"/>
+                <preferred-size width="200" height="139"/>
               </grid>
             </constraints>
             <properties/>
@@ -96,7 +97,7 @@
                   <component id="5de03" class="javax.swing.JTextField" binding="nodeAddField">
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                        <preferred-size width="150" height="-1"/>
+                        <minimum-size width="100" height="-1"/>
                       </grid>
                     </constraints>
                     <properties>
@@ -107,7 +108,7 @@
                   <component id="95dd0" class="javax.swing.JTextField" binding="nodeDelField">
                     <constraints>
                       <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                        <preferred-size width="150" height="-1"/>
+                        <minimum-size width="100" height="-1"/>
                       </grid>
                     </constraints>
                     <properties>
@@ -118,7 +119,7 @@
                   <component id="fd287" class="javax.swing.JTextField" binding="nodeBrokenField">
                     <constraints>
                       <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                        <preferred-size width="150" height="-1"/>
+                        <minimum-size width="100" height="-1"/>
                       </grid>
                     </constraints>
                     <properties>
@@ -185,7 +186,7 @@
                   <component id="dbe46" class="javax.swing.JTextArea" binding="fileTextArea">
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                        <preferred-size width="150" height="50"/>
+                        <preferred-size width="150" height="150"/>
                       </grid>
                     </constraints>
                     <properties>
