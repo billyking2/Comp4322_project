@@ -15,7 +15,7 @@ public class Lsa_file {
 
     public Lsa_file(final LSRDisplay display) {
         this.display = display;
-        this.network = new LSA_structure(display);
+        this.network = null;
         this.algo = null;
 
         display.onSelectFile(this::load_file);
@@ -34,7 +34,7 @@ public class Lsa_file {
             algo.single_step();
         });
         display.onSelectSource(n -> {
-            if (n.length() != 1) {
+            if (n.length() != 1 && network == null) {
                 return;
             }
             this.algo = new Dijkstra_Algorithm(network, n, display);
@@ -45,25 +45,25 @@ public class Lsa_file {
     public void reset() {
         display.clearFileContent();
         display.clearTopologyUpdates();
-        display.setFileState(FileProcessState.LOADED);
+        display.setFileState(FileProcessState.REMOVED);
 
         this.algo = null;
-        this.network = new LSA_structure(display);
+        this.network = null;
     }
 
     public void load_file(final File file) {
 
         if (!file.exists()) {
             display.updateStatus("Error in load_file: %s not found".formatted(file.getAbsolutePath()));
+            display.setFileState(FileProcessState.ERROR);
             return;
         }
-
-        this.file = file;
 
         String line = "";
         display.clearFileContent();
 
         try {
+            network = new LSA_structure(display);
             final BufferedReader reader = new BufferedReader(new FileReader(file));
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
@@ -74,10 +74,13 @@ public class Lsa_file {
             }
             reader.close();
             display.setFileState(FileProcessState.LOADED);
+            this.file = file;
         } catch (IOException e) {
             display.updateStatus("Error parsing line: %s".formatted(line));
             display.clearFileContent();
             display.setFileState(FileProcessState.ERROR);
+            network = null;
+            this.file = null;
             return;
         }
 
