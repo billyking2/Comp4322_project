@@ -26,7 +26,7 @@ public final class LSRDisplay {
 
         chooser = new JFileChooser(System.getProperty("user.dir"));
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setFileFilter(new FileNameExtensionFilter("LSR Files", "lsr"));
+        chooser.setFileFilter(new FileNameExtensionFilter("LSA Files", "lsa"));
     }
 
     public LSRDisplay() {
@@ -43,8 +43,12 @@ public final class LSRDisplay {
         textField.setText(message);
     }
 
-    public void showFileContent(final String fileContent) {
-        form.fileTextArea.setText(fileContent);
+    public void printFileLine(final String fileLine) {
+        form.fileTextArea.append(fileLine + '\n');
+    }
+
+    public void clearFileContent() {
+        form.fileTextArea.setText(null);
     }
 
     public void updateStatus(final String message) {
@@ -94,6 +98,12 @@ public final class LSRDisplay {
         for (final String option : options) {
             form.sourceComboBox.addItem(option);
         }
+    }
+
+    public void clearTopologyUpdates() {
+        form.nodeAddField.setText("");
+        form.nodeDelField.setText("");
+        form.nodeBrokenField.setText("");
     }
 }
 
