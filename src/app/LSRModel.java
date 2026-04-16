@@ -19,7 +19,6 @@ public class LSRModel {
         if (network.putIfAbsent(nodeId, new HashMap<>()) == null){
             return true;
         }
-        display.updateStatus("error in addNode: add node fail");
         return false;
     }
 

@@ -252,6 +252,8 @@ public class LSRController {
             display.addSourceOption(nodeId);
             saveFile();
             display.updateStatus("Node " + nodeId + " created.");
+        } else {
+            display.updateStatus("Node " + nodeId + " already exists.");
         }
     }
 
