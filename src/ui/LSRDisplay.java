@@ -1,7 +1,9 @@
 package ui;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.mxgraph.layout.*;
 import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.model.mxGraphModel;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.view.mxGraph;
 
@@ -19,6 +21,8 @@ public final class LSRDisplay {
     private final LSRDisplayForm form;
     private final JFileChooser chooser;
     private boolean graphLocked;
+    private mxGraphComponent graphComponent;
+    private mxGraphModel model;
 
     public LSRDisplay(String title) {
         FlatIntelliJLaf.setup();
@@ -28,7 +32,9 @@ public final class LSRDisplay {
         frame.setContentPane(form.contentPanel);
 
         form.graph = new mxGraph();
-        graphLocked = false;
+        this.model = (mxGraphModel) form.graph.getModel();
+        this.graphComponent = new mxGraphComponent(form.graph);
+        this.graphLocked = false;
         initGraph();
 
         frame.setLocationRelativeTo(null);
@@ -48,7 +54,15 @@ public final class LSRDisplay {
         this("LSR Display");
     }
 
-    public void pack() {frame.pack();}
+    public void pack() {
+        try {
+            mxCircleLayout layout = new mxCircleLayout(form.graph);
+            layout.execute(form.graph.getDefaultParent());
+        } catch (Exception e) {
+            updateStatus("Error packing graph: " + e.getMessage());
+        }
+        frame.pack();
+    }
 
     public mxGraph getGraph() {return form.graph;}
 
@@ -71,7 +85,7 @@ public final class LSRDisplay {
         var vertexStyle = form.graph.getStylesheet().getDefaultVertexStyle();
         vertexStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_ELLIPSE);
 
-        mxGraphComponent graphComponent = new mxGraphComponent(form.graph);
+        graphComponent = new mxGraphComponent(form.graph);
         graphComponent.setConnectable(false); // Disables the "connection" handle
         graphComponent.setDragEnabled(false);  // Allows moving nodes around
         this.addGraphComponent(graphComponent);
@@ -89,12 +103,12 @@ public final class LSRDisplay {
 
                 mxGraph graph = form.graph;
                 if (cell != null) {
-                    if (graph.getModel().isVertex(cell)) {
-                        String nodeName = (String) graph.getModel().getValue(cell);
+                    if (model.isVertex(cell)) {
+                        String nodeName = (String) model.getValue(cell);
                         form.sourceComboBox.setSelectedItem(nodeName);
                         highlightCell(cell);
                     }
-                    else if (graph.getModel().isEdge(cell)) {
+                    else if (model.isEdge(cell)) {
                         form.sourceComboBox.setSelectedIndex(0);
                         // Example: Logic to 'Break' this link in your LSR simulation
                         graph.setCellStyles(mxConstants.STYLE_STROKECOLOR, "red", new Object[]{cell});
@@ -108,29 +122,41 @@ public final class LSRDisplay {
     }
 
     public void highlightCell(Object cell) {
-        clearHighlight();
-        form.graph.getModel().beginUpdate();
+        this.highlightCell(cell, true);
+    }
+
+    public void highlightCell(Object cell, String colorHex, boolean clearOtherColors) {
+        if (clearOtherColors) clearHighlight();
+        model.beginUpdate();
+
         try {
             // Highlight this specific one
-            form.graph.setCellStyles(mxConstants.STYLE_FILLCOLOR, "#FFA500", new Object[]{cell});
+            form.graph.setCellStyles(mxConstants.STYLE_FILLCOLOR, colorHex, new Object[]{cell});
         } finally {
-            form.graph.getModel().endUpdate();
+            model.endUpdate();
         }
+    }
+
+    public void highlightCell(Object cell, boolean clearOtherColors) {
+        this.highlightCell(cell, Color.green, clearOtherColors);
+    }
+
+    public void highlightCell(Object cell, Color color, boolean clearOtherColors) {
+        String hexCode = String.format("#%06X", (0xFFFFFF & color.getRGB()));
+        this.highlightCell(cell, hexCode, clearOtherColors);
     }
 
     public void clearHighlight() {
 
-        form.graph.getModel().beginUpdate();
+        model.beginUpdate();
         form.graph.setCellStyles(mxConstants.STYLE_FILLCOLOR, "#C3D9FF",
                 form.graph.getChildVertices(form.graph.getDefaultParent()));
-        form.graph.getModel().endUpdate();
+        model.endUpdate();
     }
 
     public void addGraphComponent(mxGraphComponent graphComponent) {
         form.topUpdatePanel.add(graphComponent);
     }
-
-
 
     @Deprecated
     public void showNodeInfo(final String message, final NodeInfo infoType) {
@@ -206,7 +232,12 @@ public final class LSRDisplay {
     }
 
     public void clearTopologyUpdates() {
+        model.beginUpdate();
+        model.clear();
         form.graph.removeCells(form.graph.getChildCells(form.graph.getDefaultParent()), true);
+        model.endUpdate();
+
+        this.graphComponent.refresh();
         // Refresh the UI to show the empty space
         form.topUpdatePanel.revalidate();
         form.topUpdatePanel.repaint();
@@ -231,6 +262,7 @@ public final class LSRDisplay {
     public void disableSelection() {
         graphLocked = true;
         form.graph.setCellsSelectable(false);
+        form.graph.setSelectionCell(null);
         form.sourceComboBox.setEnabled(false);
     }
 

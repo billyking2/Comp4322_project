@@ -1,7 +1,9 @@
 import ui.LSRDisplay;
 import ui.NodeInfo;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class Dijkstra_Algorithm {
 
@@ -12,9 +14,11 @@ public class Dijkstra_Algorithm {
     private Set<String> visited;
     private final LSRDisplay display;
     private boolean started = false, ended = false;
+    private Lsa_file control;
 
-    public Dijkstra_Algorithm(LSA_structure network, String source_node, final LSRDisplay display) {
-        this.network = network;
+    public Dijkstra_Algorithm(Lsa_file control, String source_node, final LSRDisplay display) {
+        this.control = control;
+        this.network = control.getNetwork();
         this.source_node = source_node;
         this.distances = new HashMap<>();
         this.previous_node = new HashMap<>();
@@ -42,6 +46,10 @@ public class Dijkstra_Algorithm {
     public boolean isEnded() {return ended;}
 
     private void run_Dijkstra(boolean is_single_step) {
+        if (ended) {
+            display.updateStatus("The dijkstra algorithm has already ended!");
+            return;
+        }
         int total_nodes_size = network.get_all_nodes().size();
         // visit all the node
         while (visited.size() < total_nodes_size) {
@@ -49,14 +57,16 @@ public class Dijkstra_Algorithm {
             if (visit_node == null) break;
 
             visited.add(visit_node);
+
+            update_neighbors(visit_node);
+            Object cell = control.getNodeCell(visit_node);
+            if (!visit_node.equals(source_node))
+                display.highlightCell(cell, Color.yellow, false);
             // single step
             if (is_single_step && !visit_node.equals(source_node)) {
-                update_neighbors(visit_node);
-                // TODO color
                 display.updateStatus("Found " + visit_node + ": Path: " + get_path(visit_node) + " Cost: " + distances.get(visit_node));
-                return;
+                if (visited.size() < total_nodes_size) return;
             }
-            update_neighbors(visit_node);
         }
         print_summary_table();
         ended = true;

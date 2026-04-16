@@ -14,7 +14,7 @@ public class Lsa_file {
     private LSA_structure network;
     private final LSRDisplay display;
     private Dijkstra_Algorithm algo;
-    private Map<String, Object> vertexMap = new java.util.HashMap<>();
+    private final Map<String, Object> vertexMap = new java.util.HashMap<>();
 
     public Lsa_file(final LSRDisplay display) {
         this.display = display;
@@ -31,23 +31,30 @@ public class Lsa_file {
                 return;
             }
             algo.compute_all();
-            display.disableSelection();
+            if (algo.isStarted() && algo.isEnded())
+                display.enableSelection();
+            else
+                display.disableSelection();
         });
         display.onSingleStep(() -> {
             if (algo == null) {
                 display.updateStatus("Not performing action: Please select a file and starting node first.");
                 return;
             }
-            display.disableSelection();
             algo.single_step();
+            if (algo.isStarted() && algo.isEnded())
+                display.enableSelection();
+            else
+                display.disableSelection();
         });
         display.onSelectSource(n -> {
             if (n.length() != 1 || network == null) {
                 display.selectNode(null);
                 display.clearHighlight();
+                this.algo = null;
                 return;
             }
-            this.algo = new Dijkstra_Algorithm(network, n, display);
+            this.algo = new Dijkstra_Algorithm(this, n, display);
             display.selectNode(vertexMap.get(n));
             display.highlightCell(vertexMap.get(n));
         });
@@ -103,7 +110,6 @@ public class Lsa_file {
         }
 
         display.updateStatus("Loaded network from %s".formatted(file.getAbsolutePath()));
-        display.pack();
     }
 
     public void displayGraph() {
@@ -246,5 +252,13 @@ public class Lsa_file {
             display.updateStatus("Node " + nodeId + " removed and saved");
         }
         return success;
+    }
+
+    public Object getNodeCell(String node) {
+        return vertexMap.get(node);
+    }
+
+    public LSA_structure getNetwork() {
+        return network;
     }
 }
