@@ -1,4 +1,5 @@
-import com.mxgraph.swing.mxGraphComponent;
+package app;
+
 import com.mxgraph.view.mxGraph;
 import ui.FileProcessState;
 import ui.LSRDisplay;
@@ -20,6 +21,8 @@ public class Lsa_file {
         this.display = display;
         this.network = null;
         this.algo = null;
+
+        display.setupMouseInteractions(this);
 
         display.onSelectFile(f -> {
             this.load_file(f);
@@ -193,24 +196,28 @@ public class Lsa_file {
 
             List<String> all_nodes = network.get_all_nodes();
             Collections.sort(all_nodes);
-
+            StringBuilder content = new StringBuilder();
             for (String node : all_nodes) {
                 Map<String, Integer> neighbors = network.get_edge(node);
 
                 // build the line for this node
                 StringBuilder line = new StringBuilder();
-                line.append(node);
+                line.append(node).append(": ");
 
                 for (Map.Entry<String, Integer> entry : neighbors.entrySet()) {
-                    line.append(":")
-                            .append(entry.getKey())
+                    line.append(entry.getKey())
                             .append(":")
-                            .append(entry.getValue());
+                            .append(entry.getValue())
+                            .append(" ");
                 }
+                String save = line.toString();
+                content.append(save).append("\n");
 
-                writer.write(line.toString());
+                writer.write(save);
                 writer.newLine();
             }
+            display.clearFileContent();
+            display.printFileContent(content.toString());
         } catch (IOException e) {
             display.updateStatus("Error while writing file: %s".formatted(file.getAbsolutePath()));
             display.clearFileContent();
@@ -220,38 +227,10 @@ public class Lsa_file {
         display.updateStatus("Saved network to: %s".formatted(file.getAbsolutePath()));
     }
 
-    public boolean add_node_to_file(String nodeId) throws IOException {
-        boolean success = network.add_node(nodeId);
-        if (success) {
-            save_file();
-            display.updateStatus("Node " + nodeId + " added and saved to file");
-        }
-        return success;
-    }
-
-
-    public void add_link_to_file(String from, String to, int weight) throws IOException {
+    public void add_link_to_file(String from, String to, int weight) {
         network.add_edge(from, to, weight);
         save_file();
         display.updateStatus("Link " + from + "-" + to + " (cost:" + weight + ") added and saved");
-    }
-
-    public boolean remove_link_to_file(String from, String to) throws IOException {
-        boolean success = network.remove_edge(from, to);
-        if (success) {
-            save_file();
-            display.updateStatus("Link " + from + "-" + to + " removed and saved");
-        }
-        return success;
-    }
-
-    public boolean remove_node_to_file(String nodeId) throws IOException {
-        boolean success = network.remove_node(nodeId);
-        if (success) {
-            save_file();
-            display.updateStatus("Node " + nodeId + " removed and saved");
-        }
-        return success;
     }
 
     public Object getNodeCell(String node) {
@@ -260,5 +239,48 @@ public class Lsa_file {
 
     public LSA_structure getNetwork() {
         return network;
+    }
+
+    public void addNewNode(String nodeId, int x, int y) {
+        if (network.add_node(nodeId)) {
+            Object parent = display.getGraph().getDefaultParent();
+            display.getGraph().getModel().beginUpdate();
+            try {
+                Object v = display.getGraph().insertVertex(parent, null, nodeId, x, y, 40, 40);
+                vertexMap.put(nodeId, v);
+            } finally {
+                display.getGraph().getModel().endUpdate();
+            }
+            save_file();
+            display.updateStatus("Node " + nodeId + " created.");
+        }
+    }
+
+    public void removeCell(Object cell) {
+        mxGraph graph = display.getGraph();
+        graph.getModel().beginUpdate();
+        try {
+            if (graph.getModel().isVertex(cell)) {
+                String id = (String) graph.getModel().getValue(cell);
+                if (network.remove_node(id)) {
+                    graph.removeCells(new Object[]{cell});
+                    vertexMap.remove(id);
+                } else {
+                    display.updateStatus("Node " + id + " removed.");
+                }
+            } else if (graph.getModel().isEdge(cell)) {
+                com.mxgraph.model.mxCell edge = (com.mxgraph.model.mxCell) cell;
+                String from = (String) edge.getSource().getValue();
+                String to = (String) edge.getTarget().getValue();
+                if (network.remove_edge(from, to)) {
+                    graph.removeCells(new Object[]{cell});
+                } else {
+                    display.updateStatus("Edge " + from + " to " + to + " removed.");
+                }
+            }
+        } finally {
+            graph.getModel().endUpdate();
+        }
+        save_file();
     }
 }

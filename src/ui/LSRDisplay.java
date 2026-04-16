@@ -1,5 +1,6 @@
 package ui;
 
+import app.Lsa_file;
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.mxgraph.layout.*;
 import com.mxgraph.swing.mxGraphComponent;
@@ -23,6 +24,7 @@ public final class LSRDisplay {
     private boolean graphLocked;
     private mxGraphComponent graphComponent;
     private mxGraphModel model;
+    private Object firstVertexForEdge = null;
 
     public LSRDisplay(String title) {
         FlatIntelliJLaf.setup();
@@ -67,8 +69,6 @@ public final class LSRDisplay {
     public mxGraph getGraph() {return form.graph;}
 
     public void initGraph() {
-
-
         form.graph.setCellsEditable(false);
         form.graph.setCellsDeletable(false);
         form.graph.setCellsDisconnectable(false);
@@ -91,6 +91,57 @@ public final class LSRDisplay {
         this.addGraphComponent(graphComponent);
 
         addClickListener(graphComponent);
+    }
+
+    public void setupMouseInteractions(Lsa_file controller) {
+        graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                Object cell = graphComponent.getCellAt(e.getX(), e.getY());
+
+                // --- RIGHT CLICK: Remove Vertex or Edge ---
+                if (SwingUtilities.isRightMouseButton(e) && cell != null) {
+                    int confirm = JOptionPane.showConfirmDialog(frame, "Delete selected element?", "Confirm", JOptionPane.YES_NO_OPTION);
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        controller.removeCell(cell);
+                    }
+                }
+                model.beginUpdate();
+                // --- DOUBLE LEFT CLICK: Add Vertex or Create Edge ---
+                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                    if (cell == null) {
+                        // Clicked empty space: Add new Vertex
+                        String name = JOptionPane.showInputDialog(frame, "New Node Name:");
+                        if (name != null && !name.trim().isEmpty()) {
+                            controller.addNewNode(name, e.getX(), e.getY());
+                        }
+                    } else if (form.graph.getModel().isVertex(cell)) {
+                        // Clicked a vertex: Link logic
+                        if (firstVertexForEdge == null) {
+                            firstVertexForEdge = cell;
+                            updateStatus("Selected " + form.graph.getModel().getValue(cell) + ". Double click another node to link.");
+                        } else {
+                            Object secondVertex = cell;
+                            if (firstVertexForEdge != secondVertex) {
+                                String weightStr = JOptionPane.showInputDialog(frame, "Enter Link Cost:");
+                                try {
+                                    int weight = Integer.parseInt(weightStr);
+                                    String from = (String) form.graph.getModel().getValue(firstVertexForEdge);
+                                    String to = (String) form.graph.getModel().getValue(secondVertex);
+                                    controller.add_link_to_file(from, to, weight);
+                                    // Refresh graph visuals
+                                    controller.displayGraph();
+                                } catch (NumberFormatException ex) {
+                                    updateStatus("Invalid cost.");
+                                }
+                            }
+                            firstVertexForEdge = null; // Reset selection
+                        }
+                    }
+                }
+                model.endUpdate();
+            }
+        });
     }
 
     private void addClickListener(mxGraphComponent graphComponent) {
@@ -171,6 +222,10 @@ public final class LSRDisplay {
 
     public void printFileLine(final String fileLine) {
         form.fileTextArea.append(fileLine + '\n');
+    }
+
+    public void printFileContent(final String fileContent) {
+        form.fileTextArea.setText(fileContent);
     }
 
     public void clearFileContent() {

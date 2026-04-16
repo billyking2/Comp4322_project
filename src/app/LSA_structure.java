@@ -1,3 +1,5 @@
+package app;
+
 import ui.LSRDisplay;
 
 import java.util.*;

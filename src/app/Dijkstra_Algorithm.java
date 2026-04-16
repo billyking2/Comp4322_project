@@ -1,5 +1,6 @@
+package app;
+
 import ui.LSRDisplay;
-import ui.NodeInfo;
 
 import java.awt.*;
 import java.util.*;
