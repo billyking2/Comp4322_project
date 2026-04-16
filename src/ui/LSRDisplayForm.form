@@ -50,7 +50,7 @@
                   </component>
                 </children>
               </grid>
-              <grid id="4830" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="4830" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="true"/>
@@ -60,7 +60,7 @@
                 <children>
                   <component id="ad209" class="javax.swing.JComboBox" binding="sourceComboBox">
                     <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false">
                         <minimum-size width="200" height="-1"/>
                       </grid>
                     </constraints>
@@ -68,6 +68,14 @@
                       <model>
                         <item value="&lt;default&gt;"/>
                       </model>
+                    </properties>
+                  </component>
+                  <component id="fb9b1" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Select A Starting Node:"/>
                     </properties>
                   </component>
                 </children>
@@ -84,8 +92,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <grid id="4dd3c" binding="topUpdatePanel" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="10" vgap="10">
-                <margin top="10" left="10" bottom="10" right="10"/>
+              <grid id="4dd3c" binding="topUpdatePanel" layout-manager="BorderLayout" hgap="0" vgap="0">
                 <constraints>
                   <grid row="1" column="0" row-span="1" col-span="5" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
@@ -93,41 +100,7 @@
                   <foreground color="-16777216"/>
                 </properties>
                 <border type="none" title="Topology Update"/>
-                <children>
-                  <component id="5de03" class="javax.swing.JTextField" binding="nodeAddField">
-                    <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                        <minimum-size width="100" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties>
-                      <editable value="false"/>
-                      <font size="16"/>
-                    </properties>
-                  </component>
-                  <component id="95dd0" class="javax.swing.JTextField" binding="nodeDelField">
-                    <constraints>
-                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                        <minimum-size width="100" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties>
-                      <editable value="false"/>
-                      <font size="16"/>
-                    </properties>
-                  </component>
-                  <component id="fd287" class="javax.swing.JTextField" binding="nodeBrokenField">
-                    <constraints>
-                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                        <minimum-size width="100" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties>
-                      <editable value="false"/>
-                      <font size="16"/>
-                    </properties>
-                  </component>
-                </children>
+                <children/>
               </grid>
               <grid id="74a24" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="true" same-size-vertically="false" hgap="20" vgap="0">
                 <margin top="0" left="20" bottom="0" right="20"/>

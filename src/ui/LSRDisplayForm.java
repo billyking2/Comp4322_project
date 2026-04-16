@@ -1,5 +1,7 @@
 package ui;
 
+import com.mxgraph.view.mxGraph;
+
 import javax.swing.*;
 
 public final class LSRDisplayForm {
@@ -17,5 +19,5 @@ public final class LSRDisplayForm {
     JTextArea fileTextArea;
     JComboBox<String> sourceComboBox;
     JTextArea statusTextArea;
-
+    mxGraph graph;
 }

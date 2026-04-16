@@ -1,3 +1,5 @@
+import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.view.mxGraph;
 import ui.FileProcessState;
 import ui.LSRDisplay;
 
@@ -12,43 +14,57 @@ public class Lsa_file {
     private LSA_structure network;
     private final LSRDisplay display;
     private Dijkstra_Algorithm algo;
+    private Map<String, Object> vertexMap = new java.util.HashMap<>();
 
     public Lsa_file(final LSRDisplay display) {
         this.display = display;
         this.network = null;
         this.algo = null;
 
-        display.onSelectFile(this::load_file);
+        display.onSelectFile(f -> {
+            this.load_file(f);
+            this.displayGraph();
+        });
         display.onComputeAll(() -> {
             if (algo == null) {
                 display.updateStatus("Not performing action: Please select a file and starting node first.");
                 return;
             }
             algo.compute_all();
+            display.disableSelection();
         });
         display.onSingleStep(() -> {
             if (algo == null) {
                 display.updateStatus("Not performing action: Please select a file and starting node first.");
                 return;
             }
+            display.disableSelection();
             algo.single_step();
         });
         display.onSelectSource(n -> {
-            if (n.length() != 1 && network == null) {
+            if (n.length() != 1 || network == null) {
+                display.selectNode(null);
+                display.clearHighlight();
                 return;
             }
             this.algo = new Dijkstra_Algorithm(network, n, display);
+            display.selectNode(vertexMap.get(n));
+            display.highlightCell(vertexMap.get(n));
         });
         display.onReset(this::reset);
     }
 
+
     public void reset() {
         display.clearFileContent();
         display.clearTopologyUpdates();
+        display.clearStatus();
         display.setFileState(FileProcessState.REMOVED);
+        display.resetSelection();
 
         this.algo = null;
         this.network = null;
+        this.vertexMap.clear();
     }
 
     public void load_file(final File file) {
@@ -79,12 +95,66 @@ public class Lsa_file {
             display.updateStatus("Error parsing line: %s".formatted(line));
             display.clearFileContent();
             display.setFileState(FileProcessState.ERROR);
+            display.resetSelection();
+
             network = null;
             this.file = null;
             return;
         }
 
         display.updateStatus("Loaded network from %s".formatted(file.getAbsolutePath()));
+        display.pack();
+    }
+
+    public void displayGraph() {
+        mxGraph graph = display.getGraph();
+        display.enableSelection();
+
+        Object parent = graph.getDefaultParent();
+        final String[] nodes = network.get_all_nodes().toArray(new String[0]);
+
+        graph.getModel().beginUpdate();
+        try {
+            // 2. First Pass: Create all vertices and store them in the map
+            for (int i = 0; i < nodes.length; ++i) {
+                String nodeName = nodes[i];
+
+                // Note: your x and y logic might need scaling (e.g., * 50)
+                // otherwise nodes will overlap at (0,0), (1,0) etc.
+                int x = (i % 5) * 50;
+                int y = (i / 5) * 50;
+
+                Object vertex = graph.insertVertex(parent, null, nodeName, x, y, 40, 40);
+                vertexMap.put(nodeName, vertex);
+            }
+
+            // 3. Second Pass: Create edges using the objects from the map
+            for (String node : nodes) {
+                var edges = network.get_edge(node);
+                for (var entry : edges.entrySet()) {
+                    String connectTo = entry.getKey();
+                    int edgeCost = entry.getValue();
+
+                    Object vSource = vertexMap.get(node);
+                    Object vTarget = vertexMap.get(connectTo);
+
+                    if (vSource != null && vTarget != null) {
+                        // Check if an edge already exists between these two in either direction
+                        Object[] existingEdges = graph.getEdgesBetween(vSource, vTarget);
+
+                        if (existingEdges.length == 0) {
+                            // Only insert if no edge exists yet
+                            graph.insertEdge(parent, null, edgeCost, vSource, vTarget, "");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            display.updateStatus("Error when loading network: " + e.getMessage());
+        } finally {
+            graph.getModel().endUpdate();
+        }
+
         display.pack();
     }
 

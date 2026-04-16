@@ -11,6 +11,7 @@ public class Dijkstra_Algorithm {
     private Map<String, String> previous_node;
     private Set<String> visited;
     private final LSRDisplay display;
+    private boolean started = false, ended = false;
 
     public Dijkstra_Algorithm(LSA_structure network, String source_node, final LSRDisplay display) {
         this.network = network;
@@ -28,12 +29,17 @@ public class Dijkstra_Algorithm {
     }
 
     public void compute_all() {
+        started = true;
         run_Dijkstra(false);
     }
 
     public void single_step() {
+        started = true;
         run_Dijkstra(true);
     }
+
+    public boolean isStarted() {return started;}
+    public boolean isEnded() {return ended;}
 
     private void run_Dijkstra(boolean is_single_step) {
         int total_nodes_size = network.get_all_nodes().size();
@@ -46,13 +52,14 @@ public class Dijkstra_Algorithm {
             // single step
             if (is_single_step && !visit_node.equals(source_node)) {
                 update_neighbors(visit_node);
-                display.showNodeInfo(visit_node, NodeInfo.NODE_ADD);
+                // TODO color
                 display.updateStatus("Found " + visit_node + ": Path: " + get_path(visit_node) + " Cost: " + distances.get(visit_node));
                 return;
             }
             update_neighbors(visit_node);
         }
         print_summary_table();
+        ended = true;
     }
 
     private void update_neighbors(String visit_node){
