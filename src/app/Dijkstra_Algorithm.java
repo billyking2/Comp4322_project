@@ -105,10 +105,6 @@ public class Dijkstra_Algorithm {
             }
         }
 
-        if (closest_node != null) {
-            display.updateStatus("closest_node: "+closest_node);
-        }
-
         return closest_node;
     }
 

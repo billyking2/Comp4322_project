@@ -60,6 +60,7 @@ public class LSA_structure {
         }
         else {
             display.updateStatus("error in remove_edge: remove_edge fail at least in one side");
+            display.updateStatus("error in remove_edge: success_counter_in_remove_edge " + success_counter_in_remove_edge);
             return false;
         }
     }
@@ -68,14 +69,16 @@ public class LSA_structure {
     public boolean remove_node(String node) {
         // get the neighbors
         Map<String, Integer> edges = network.get(node);
+        // choose node (B), and have B{A:5 C:4 E:3 }
 
         // return false if node not exist
         if (edges == null) {
             display.updateStatus("error in remove_node: node not found");
             return false;
         }
+        List<String> edges_list = new ArrayList<>(edges.keySet());
 
-        for (String neighbor : edges.keySet()) {
+        for (String neighbor : edges_list) {
             boolean edgeRemoved = remove_edge(node, neighbor);
             if (!edgeRemoved) {
                 display.updateStatus("error removing edge between " + node + " and " + neighbor);
@@ -103,10 +106,6 @@ public class LSA_structure {
         return new ArrayList<>(network.keySet());
     }
 
-    // check if node exists
-    public boolean have_node(String nodeId) {
-        return network.containsKey(nodeId);
-    }
 
     // print network
     public void print_network() {
