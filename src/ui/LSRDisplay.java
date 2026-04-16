@@ -35,7 +35,6 @@ public final class LSRDisplay {
 
         form.graph = new mxGraph();
         this.model = (mxGraphModel) form.graph.getModel();
-        this.graphComponent = new mxGraphComponent(form.graph);
         this.graphLocked = false;
         initGraph();
 
@@ -68,13 +67,26 @@ public final class LSRDisplay {
 
     public mxGraph getGraph() {return form.graph;}
 
+    public void refreshGraph() {
+        form.graph.refresh();
+        form.graph.repaint();
+        if (this.graphComponent != null) {
+            graphComponent.refresh();
+            graphComponent.repaint();
+        }
+
+        form.topUpdatePanel.revalidate();
+        form.topUpdatePanel.repaint();
+    }
+
     public void initGraph() {
         form.graph.setCellsEditable(false);
-        form.graph.setCellsDeletable(false);
+        //form.graph.setCellsDeletable(false);
         form.graph.setCellsDisconnectable(false);
         form.graph.setEdgeLabelsMovable(false);
         form.graph.setVertexLabelsMovable(false);
         form.graph.setCellsBendable(false);
+        form.graph.setCellsSelectable(true);
 
         var edgeStyle = form.graph.getStylesheet().getDefaultEdgeStyle();
         edgeStyle.put(mxConstants.STYLE_ENDARROW, mxConstants.NONE);
@@ -97,6 +109,7 @@ public final class LSRDisplay {
         graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                if (graphLocked) return;
                 Object cell = graphComponent.getCellAt(e.getX(), e.getY());
 
                 // --- RIGHT CLICK: Remove Vertex or Edge ---
@@ -106,9 +119,10 @@ public final class LSRDisplay {
                         controller.removeCell(cell);
                     }
                 }
-                model.beginUpdate();
+
                 // --- DOUBLE LEFT CLICK: Add Vertex or Create Edge ---
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                    model.beginUpdate();
                     if (cell == null) {
                         // Clicked empty space: Add new Vertex
                         String name = JOptionPane.showInputDialog(frame, "New Node Name:");
@@ -120,26 +134,37 @@ public final class LSRDisplay {
                         if (firstVertexForEdge == null) {
                             firstVertexForEdge = cell;
                             updateStatus("Selected " + form.graph.getModel().getValue(cell) + ". Double click another node to link.");
-                        } else {
+                        } else if (firstVertexForEdge.equals(cell)) {
+                            updateStatus("Node " + model.getValue(cell) + " is same as previous node. Please select another node.");
+                        }
+                        else {
                             Object secondVertex = cell;
-                            if (firstVertexForEdge != secondVertex) {
-                                String weightStr = JOptionPane.showInputDialog(frame, "Enter Link Cost:");
-                                try {
-                                    int weight = Integer.parseInt(weightStr);
-                                    String from = (String) form.graph.getModel().getValue(firstVertexForEdge);
-                                    String to = (String) form.graph.getModel().getValue(secondVertex);
-                                    controller.add_link_to_file(from, to, weight);
-                                    // Refresh graph visuals
-                                    controller.displayGraph();
-                                } catch (NumberFormatException ex) {
-                                    updateStatus("Invalid cost.");
+                            try {
+                                String from = (String) model.getValue(firstVertexForEdge);
+                                String to = (String) model.getValue(secondVertex);
+                                Object fromNode = controller.getNodeCell(from);
+                                Object toNode = controller.getNodeCell(to);
+                                if (fromNode != null && toNode != null) {
+                                    // Check if an edge already exists between these two in either direction
+                                    Object[] existingEdges = form.graph.getEdgesBetween(fromNode, toNode);
+
+                                    if (existingEdges.length == 0) {
+                                        // Only insert if no edge exists yet
+                                        String weightStr = JOptionPane.showInputDialog(frame, "Enter Link Cost:");
+                                        int weight = Integer.parseInt(weightStr);
+                                        controller.add_link_to_file(from, to, weight);
+                                        form.graph.insertEdge(form.graph.getDefaultParent(), null, weight, fromNode, toNode, "");
+                                    }
                                 }
+                            } catch (NumberFormatException ex) {
+                                updateStatus("Invalid cost.");
                             }
                             firstVertexForEdge = null; // Reset selection
                         }
                     }
+                    model.endUpdate();
+                    refreshGraph();
                 }
-                model.endUpdate();
             }
         });
     }
@@ -153,6 +178,7 @@ public final class LSRDisplay {
                 Object cell = graphComponent.getCellAt(e.getX(), e.getY());
 
                 mxGraph graph = form.graph;
+                selectNode(cell);
                 if (cell != null) {
                     if (model.isVertex(cell)) {
                         String nodeName = (String) model.getValue(cell);
@@ -233,8 +259,7 @@ public final class LSRDisplay {
     }
 
     public void updateStatus(final String message) {
-        form.statusTextArea
-                .insert(message.endsWith("\n") ? message : message + '\n', 0);
+        form.statusTextArea.insert(message + '\n', 0);
     }
 
     public void clearStatus() {
@@ -304,7 +329,7 @@ public final class LSRDisplay {
     public void resetSelection() {
         form.sourceComboBox.setEnabled(false);
         form.sourceComboBox.removeAllItems();
-        form.sourceComboBox.addItem("<default>");
+        form.sourceComboBox.addItem("<none>");
         form.sourceComboBox.setSelectedIndex(0);
     }
 

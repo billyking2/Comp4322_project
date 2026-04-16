@@ -66,7 +66,7 @@
                     </constraints>
                     <properties>
                       <model>
-                        <item value="&lt;default&gt;"/>
+                        <item value="&lt;none&gt;"/>
                       </model>
                     </properties>
                   </component>

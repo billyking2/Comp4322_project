@@ -51,7 +51,7 @@ public class Lsa_file {
                 display.disableSelection();
         });
         display.onSelectSource(n -> {
-            if (n.length() != 1 || network == null) {
+            if (n.equals("<none>") || network == null) {
                 display.selectNode(null);
                 display.clearHighlight();
                 this.algo = null;
@@ -115,8 +115,10 @@ public class Lsa_file {
         display.updateStatus("Loaded network from %s".formatted(file.getAbsolutePath()));
     }
 
+
     public void displayGraph() {
         mxGraph graph = display.getGraph();
+
         display.enableSelection();
 
         Object parent = graph.getDefaultParent();
@@ -128,12 +130,7 @@ public class Lsa_file {
             for (int i = 0; i < nodes.length; ++i) {
                 String nodeName = nodes[i];
 
-                // Note: your x and y logic might need scaling (e.g., * 50)
-                // otherwise nodes will overlap at (0,0), (1,0) etc.
-                int x = (i % 5) * 50;
-                int y = (i / 5) * 50;
-
-                Object vertex = graph.insertVertex(parent, null, nodeName, x, y, 40, 40);
+                Object vertex = graph.insertVertex(parent, null, nodeName, 0, 0, 40, 40);
                 vertexMap.put(nodeName, vertex);
             }
 
@@ -246,11 +243,12 @@ public class Lsa_file {
             Object parent = display.getGraph().getDefaultParent();
             display.getGraph().getModel().beginUpdate();
             try {
-                Object v = display.getGraph().insertVertex(parent, null, nodeId, x, y, 40, 40);
+                Object v = display.getGraph().insertVertex(parent, nodeId, nodeId, x, y, 40, 40);
                 vertexMap.put(nodeId, v);
             } finally {
                 display.getGraph().getModel().endUpdate();
             }
+            display.addSourceOption(nodeId);
             save_file();
             display.updateStatus("Node " + nodeId + " created.");
         }
@@ -263,24 +261,28 @@ public class Lsa_file {
             if (graph.getModel().isVertex(cell)) {
                 String id = (String) graph.getModel().getValue(cell);
                 if (network.remove_node(id)) {
-                    graph.removeCells(new Object[]{cell});
+                    graph.removeCells(new Object[]{cell}, true);
                     vertexMap.remove(id);
-                } else {
                     display.updateStatus("Node " + id + " removed.");
                 }
+                else display.updateStatus("Node " + id + " remove failed.");
+
             } else if (graph.getModel().isEdge(cell)) {
                 com.mxgraph.model.mxCell edge = (com.mxgraph.model.mxCell) cell;
                 String from = (String) edge.getSource().getValue();
                 String to = (String) edge.getTarget().getValue();
                 if (network.remove_edge(from, to)) {
-                    graph.removeCells(new Object[]{cell});
-                } else {
+                    graph.removeCells(new Object[]{cell}, true);
                     display.updateStatus("Edge " + from + " to " + to + " removed.");
                 }
+                else display.updateStatus("Edge " + from + " to " + to + " remove failed.");
             }
+            save_file();
+        } catch (Exception ex) {
+            display.updateStatus("Error while trying to remove node " + cell + ": " + ex.getMessage());
         } finally {
             graph.getModel().endUpdate();
+            display.refreshGraph();
         }
-        save_file();
     }
 }

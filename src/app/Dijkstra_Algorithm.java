@@ -122,7 +122,7 @@ public class Dijkstra_Algorithm {
 
     // print path
     private void print_summary_table() {
-        StringBuilder builder = new StringBuilder("\nSource " + source_node + ": \n ");
+        StringBuilder builder = new StringBuilder("Source " + source_node + ": \n ");
         List<String> nodes = new ArrayList<>(distances.keySet());
         Collections.sort(nodes);
 
