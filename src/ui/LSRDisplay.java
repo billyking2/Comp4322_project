@@ -1,6 +1,6 @@
 package ui;
 
-import app.Lsa_file;
+import app.LSRController;
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.mxgraph.layout.*;
 import com.mxgraph.swing.mxGraphComponent;
@@ -105,7 +105,7 @@ public final class LSRDisplay {
         addClickListener(graphComponent);
     }
 
-    public void setupMouseInteractions(Lsa_file controller) {
+    public void setupMouseInteractions(LSRController controller) {
         graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -152,7 +152,7 @@ public final class LSRDisplay {
                                         // Only insert if no edge exists yet
                                         String weightStr = JOptionPane.showInputDialog(frame, "Enter Link Cost:");
                                         int weight = Integer.parseInt(weightStr);
-                                        controller.add_link_to_file(from, to, weight);
+                                        controller.insertEdge(from, to, weight);
                                         form.graph.insertEdge(form.graph.getDefaultParent(), null, weight, fromNode, toNode, "");
                                     }
                                 }

@@ -9,15 +9,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class Lsa_file {
+public class LSRController {
 
     private File file;
-    private LSA_structure network;
+    private LSRModel network;
     private final LSRDisplay display;
-    private Dijkstra_Algorithm algo;
+    private DijkstraAlgo algo;
     private final Map<String, Object> vertexMap = new java.util.HashMap<>();
 
-    public Lsa_file(final LSRDisplay display) {
+    public LSRController(final LSRDisplay display) {
         this.display = display;
         this.network = null;
         this.algo = null;
@@ -25,7 +25,7 @@ public class Lsa_file {
         display.setupMouseInteractions(this);
 
         display.onSelectFile(f -> {
-            this.load_file(f);
+            this.loadLSAFile(f);
             this.displayGraph();
         });
         display.onComputeAll(() -> {
@@ -33,7 +33,7 @@ public class Lsa_file {
                 display.updateStatus("Not performing action: Please select a file and starting node first.");
                 return;
             }
-            algo.compute_all();
+            algo.computeALl();
             if (algo.isStarted() && algo.isEnded())
                 display.enableSelection();
             else
@@ -44,7 +44,7 @@ public class Lsa_file {
                 display.updateStatus("Not performing action: Please select a file and starting node first.");
                 return;
             }
-            algo.single_step();
+            algo.singleStep();
             if (algo.isStarted() && algo.isEnded())
                 display.enableSelection();
             else
@@ -57,7 +57,7 @@ public class Lsa_file {
                 this.algo = null;
                 return;
             }
-            this.algo = new Dijkstra_Algorithm(this, n, display);
+            this.algo = new DijkstraAlgo(this, n, display);
             display.selectNode(vertexMap.get(n));
             display.highlightCell(vertexMap.get(n));
         });
@@ -77,10 +77,10 @@ public class Lsa_file {
         this.vertexMap.clear();
     }
 
-    public void load_file(final File file) {
+    public void loadLSAFile(final File file) {
 
         if (!file.exists()) {
-            display.updateStatus("Error in load_file: %s not found".formatted(file.getAbsolutePath()));
+            display.updateStatus("Error in loadLSAFile: %s not found".formatted(file.getAbsolutePath()));
             display.setFileState(FileProcessState.ERROR);
             return;
         }
@@ -89,13 +89,13 @@ public class Lsa_file {
         display.clearFileContent();
 
         try {
-            network = new LSA_structure(display);
+            network = new LSRModel(display);
             final BufferedReader reader = new BufferedReader(new FileReader(file));
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) continue;
 
-                parse_line(line);
+                parseLine(line);
                 display.printFileLine(line);
             }
             reader.close();
@@ -122,7 +122,7 @@ public class Lsa_file {
         display.enableSelection();
 
         Object parent = graph.getDefaultParent();
-        final String[] nodes = network.get_all_nodes().toArray(new String[0]);
+        final String[] nodes = network.getAllNodes().toArray(new String[0]);
 
         graph.getModel().beginUpdate();
         try {
@@ -136,7 +136,7 @@ public class Lsa_file {
 
             // 3. Second Pass: Create edges using the objects from the map
             for (String node : nodes) {
-                var edges = network.get_edge(node);
+                var edges = network.getEdge(node);
                 for (var entry : edges.entrySet()) {
                     String connectTo = entry.getKey();
                     int edgeCost = entry.getValue();
@@ -164,39 +164,39 @@ public class Lsa_file {
         display.pack();
     }
 
-    private void parse_line(final String line) {
+    private void parseLine(final String line) {
         String[] parts = line.split("\\s+"); // Split by whitespace
 
         // get source node
-        String source_node = parts[0].replace(":", "");
-        network.add_node(source_node);
+        String srcNode = parts[0].replace(":", "");
+        network.addNode(srcNode);
 
-        display.addSourceOption(source_node);
+        display.addSourceOption(srcNode);
         // parse each part
         for (String part : parts) {
             String[] linkInfo = part.split(":");
 
             if (linkInfo.length == 3) {
-                String to_node = linkInfo[1];
+                String toNode = linkInfo[1];
                 int cost = Integer.parseInt(linkInfo[2]);
-                network.add_edge(source_node, to_node, cost);
+                network.addEdge(srcNode, toNode, cost);
             }
             else if (linkInfo.length == 2 && !part.equals(parts[0])) {
-                String to_node = linkInfo[0];
+                String toNode = linkInfo[0];
                 int cost = Integer.parseInt(linkInfo[1]);
-                network.add_edge(source_node, to_node, cost);
+                network.addEdge(srcNode, toNode, cost);
             }
         }
     }
 
-    public void save_file() {
+    public void saveFile() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 
-            List<String> all_nodes = network.get_all_nodes();
-            Collections.sort(all_nodes);
+            List<String> nodes = network.getAllNodes();
+            Collections.sort(nodes);
             StringBuilder content = new StringBuilder();
-            for (String node : all_nodes) {
-                Map<String, Integer> neighbors = network.get_edge(node);
+            for (String node : nodes) {
+                Map<String, Integer> neighbors = network.getEdge(node);
 
                 // build the line for this node
                 StringBuilder line = new StringBuilder();
@@ -225,9 +225,9 @@ public class Lsa_file {
         display.updateStatus("Saved network to: %s".formatted(file.getAbsolutePath()));
     }
 
-    public void add_link_to_file(String from, String to, int weight) {
-        network.add_edge(from, to, weight);
-        save_file();
+    public void insertEdge(String from, String to, int weight) {
+        network.addEdge(from, to, weight);
+        saveFile();
         display.updateStatus("Link " + from + "-" + to + " (cost:" + weight + ") added and saved");
     }
 
@@ -235,12 +235,12 @@ public class Lsa_file {
         return vertexMap.get(node);
     }
 
-    public LSA_structure getNetwork() {
+    public LSRModel getNetwork() {
         return network;
     }
 
     public void addNewNode(String nodeId, int x, int y) {
-        if (network.add_node(nodeId)) {
+        if (network.addNode(nodeId)) {
             Object parent = display.getGraph().getDefaultParent();
             display.getGraph().getModel().beginUpdate();
             try {
@@ -250,7 +250,7 @@ public class Lsa_file {
                 display.getGraph().getModel().endUpdate();
             }
             display.addSourceOption(nodeId);
-            save_file();
+            saveFile();
             display.updateStatus("Node " + nodeId + " created.");
         }
     }
@@ -261,7 +261,7 @@ public class Lsa_file {
         try {
             if (graph.getModel().isVertex(cell)) {
                 String id = (String) graph.getModel().getValue(cell);
-                if (network.remove_node(id)) {
+                if (network.removeNode(id)) {
                     graph.removeCells(new Object[]{cell}, true);
                     vertexMap.remove(id);
                     display.updateStatus("Node " + id + " removed.");
@@ -272,13 +272,13 @@ public class Lsa_file {
                 com.mxgraph.model.mxCell edge = (com.mxgraph.model.mxCell) cell;
                 String from = (String) edge.getSource().getValue();
                 String to = (String) edge.getTarget().getValue();
-                if (network.remove_edge(from, to)) {
+                if (network.removeEdge(from, to)) {
                     graph.removeCells(new Object[]{cell}, true);
                     display.updateStatus("Edge " + from + " to " + to + " removed.");
                 }
                 else display.updateStatus("Edge " + from + " to " + to + " remove failed.");
             }
-            save_file();
+            saveFile();
         } catch (Exception ex) {
             display.updateStatus("Error while trying to remove node " + cell + ": " + ex.getMessage());
         } finally {
