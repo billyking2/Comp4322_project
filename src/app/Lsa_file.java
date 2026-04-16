@@ -169,6 +169,7 @@ public class Lsa_file {
 
         // get source node
         String source_node = parts[0].replace(":", "");
+        network.add_node(source_node);
 
         display.addSourceOption(source_node);
         // parse each part
