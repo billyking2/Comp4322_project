@@ -62,6 +62,10 @@ public final class LSRDisplay {
             Double click LMB on empty space to create a new node;
             Double click LMB on 2 different nodes to create an edge between the two nodes;
             
+            When selecting a node, press Single Step button or Compute All button to start performing packet broadcasting;
+            Pressing Single Step button forwards to next step, until all the node is visited;
+            Pressing Compute All button completes the visit immediately;
+            
             The status will be displayed on the Status panel at the bottom;
             The real time file content update will be shown on the File panel on the right;
             """, "How to basic", JOptionPane.INFORMATION_MESSAGE);
