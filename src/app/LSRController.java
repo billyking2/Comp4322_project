@@ -25,8 +25,8 @@ public class LSRController {
         display.setupMouseInteractions(this);
 
         display.onSelectFile(f -> {
-            this.loadLSAFile(f);
-            this.displayGraph();
+            boolean success = this.loadLSAFile(f);
+            if (success) this.displayGraph();
         });
         display.onComputeAll(() -> {
             if (algo == null) {
@@ -77,12 +77,18 @@ public class LSRController {
         this.vertexMap.clear();
     }
 
-    public void loadLSAFile(final File file) {
+    public boolean loadLSAFile(final File file) {
 
-        if (!file.exists()) {
-            display.updateStatus("Error in loadLSAFile: %s not found".formatted(file.getAbsolutePath()));
+        if (!file.exists() || file.isDirectory()) {
+            display.updateStatus("Error in loadLSAFile: %s is not a file or does not exists.".formatted(file.getAbsolutePath()));
             display.setFileState(FileProcessState.ERROR);
-            return;
+            return false;
+        }
+
+        if (!file.getName().endsWith(".lsa")) {
+            display.updateStatus("Error in loadLSAFile: %s is not a .lsa file".formatted(file.getAbsolutePath()));
+            display.setFileState(FileProcessState.ERROR);
+            return false;
         }
 
         String line = "";
@@ -109,10 +115,11 @@ public class LSRController {
 
             network = null;
             this.file = null;
-            return;
+            return false;
         }
 
         display.updateStatus("Loaded network from %s".formatted(file.getAbsolutePath()));
+        return true;
     }
 
 
