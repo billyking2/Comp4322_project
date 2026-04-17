@@ -205,8 +205,6 @@ public final class LSRDisplay {
                     }
                     else if (model.isEdge(cell)) {
                         form.sourceComboBox.setSelectedIndex(0);
-                        // Example: Logic to 'Break' this link in your LSR simulation
-                        graph.setCellStyles(mxConstants.STYLE_STROKECOLOR, "red", new Object[]{cell});
                     }
                 } else {
                     clearHighlight();
