@@ -49,6 +49,24 @@ public final class LSRDisplay {
         chooser.setFileFilter(new FileNameExtensionFilter("LSA Files", "lsa"));
 
         this.resetSelection();
+
+        addEvent(form.helpButton, () -> {
+
+            JOptionPane.showMessageDialog(frame,
+            """
+            Click LMB on a node to select the node;
+            Similarly, select a node in the dropbox below to select a node;
+            Hold LMB on a node to drag the node around;
+            
+            Click RMB on a node to delete the node and all its edges;
+            Click RMB on an edge to remove the edge;
+            Double click LMB on empty space to create a new node;
+            Double click LMB on 2 different nodes to create an edge between the two nodes;
+            
+            The status will be displayed on the Status panel at the bottom;
+            The real time file content update will be shown on the File panel on the right;
+            """, "How to basic", JOptionPane.INFORMATION_MESSAGE);
+        });
     }
 
     public LSRDisplay() {

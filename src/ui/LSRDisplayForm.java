@@ -19,5 +19,6 @@ public final class LSRDisplayForm {
     JTextArea fileTextArea;
     JComboBox<String> sourceComboBox;
     JTextArea statusTextArea;
+    JButton helpButton;
     mxGraph graph;
 }
