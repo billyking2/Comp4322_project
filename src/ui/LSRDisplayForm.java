@@ -1,8 +1,10 @@
 package ui;
 
+import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
 
 import javax.swing.*;
+import java.awt.event.MouseEvent;
 
 public final class LSRDisplayForm {
     JPanel contentPanel;
@@ -18,4 +20,16 @@ public final class LSRDisplayForm {
     JButton helpButton;
     JTextPane statusTextPane;
     mxGraph graph;
+
+    public static class LSRGraphComponent extends mxGraphComponent {
+
+        public LSRGraphComponent(mxGraph graph) {
+            super(graph);
+        }
+
+        @Override
+        public boolean isPanningEvent(MouseEvent event) {
+            return event != null && SwingUtilities.isRightMouseButton(event) && event.getClickCount() < 2;
+        }
+    }
 }

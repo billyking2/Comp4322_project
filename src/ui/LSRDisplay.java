@@ -18,6 +18,7 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.io.File;
 import java.util.function.Consumer;
 
@@ -26,7 +27,8 @@ public final class LSRDisplay {
     private final LSRDisplayForm form;
     private final JFileChooser chooser;
     private boolean graphLocked;
-    private mxGraphComponent graphComponent;private final mxGraphModel model;
+    private LSRDisplayForm.LSRGraphComponent graphComponent;
+    private final mxGraphModel model;
     private Object firstVertexForEdge = null;
     private final StyledDocument styledDoc;
     private final Style docStyle;
@@ -64,6 +66,8 @@ public final class LSRDisplay {
             Click LMB on a node to select the node;
             Similarly, select a node in the dropbox below to select a node;
             Hold LMB on a node to drag the node around;
+            Use Mouse Wheel to zoom the graph in and out;
+            Drag with RMB to move around the graph;
             
             Click RMB on a node to delete the node and all its edges;
             Click RMB on an edge to remove the edge;
@@ -126,16 +130,16 @@ public final class LSRDisplay {
         var vertexStyle = form.graph.getStylesheet().getDefaultVertexStyle();
         vertexStyle.put(mxConstants.STYLE_SHAPE, mxConstants.SHAPE_ELLIPSE);
 
-        graphComponent = new mxGraphComponent(form.graph);
+        graphComponent = new LSRDisplayForm.LSRGraphComponent(form.graph);
         graphComponent.setConnectable(false); // Disables the "connection" handle
-        graphComponent.setDragEnabled(false);  // Allows moving nodes around
+        graphComponent.setDragEnabled(false);
+        graphComponent.setPanning(true); // Allow moving the camera
         this.addGraphComponent(graphComponent);
-
-        addClickListener(graphComponent);
     }
 
     public void setupMouseInteractions(LSRController controller) {
-        graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
+        mxGraphComponent.mxGraphControl control = graphComponent.getGraphControl();
+        control.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (graphLocked) return;
@@ -161,13 +165,16 @@ public final class LSRDisplay {
                     } else if (model.isVertex(cell)) {
                         // Clicked a vertex: Link logic
                         if (firstVertexForEdge == null) {
+                            control.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                             firstVertexForEdge = cell;
                             logInfo("Selected " + model.getValue(cell) + ". Double click another node to link.");
                         } else if (firstVertexForEdge.equals(cell)) {
                             logWarn("Node " + model.getValue(cell) + " is same as previous node. Please select another node.");
+                            control.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                         }
                         else {
                             try {
+                                control.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                                 String from = (String) model.getValue(firstVertexForEdge);
                                 String to = (String) model.getValue(cell);
                                 Object fromNode = controller.getNodeCell(from);
@@ -179,6 +186,10 @@ public final class LSRDisplay {
                                     if (existingEdges.length == 0) {
                                         // Only insert if no edge exists yet
                                         final String weightStr = JOptionPane.showInputDialog(frame, "Enter Link Cost larger than 0:");
+                                        if (weightStr == null || weightStr.trim().isEmpty()) {
+                                            firstVertexForEdge = null;
+                                            return;
+                                        }
                                         final int weight = Integer.parseInt(weightStr);
 
                                         // Only allow > 1 for Dih algo
@@ -204,10 +215,31 @@ public final class LSRDisplay {
                 }
             }
         });
-    }
 
-    private void addClickListener(mxGraphComponent graphComponent) {
-        graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
+        control.addMouseWheelListener(new MouseAdapter() {
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                if (e.getWheelRotation() < 0) {
+                    graphComponent.zoomIn();
+                } else if (e.getWheelRotation() > 0) {
+                    graphComponent.zoomOut();
+                }
+            }
+        });
+
+        control.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (!SwingUtilities.isRightMouseButton(e)) return;
+                control.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                control.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            }
+        });
+
+        control.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
                 // Find the cell at the mouse coordinates
