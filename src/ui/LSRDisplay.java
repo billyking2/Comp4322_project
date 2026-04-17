@@ -166,8 +166,14 @@ public final class LSRDisplay {
 
                                     if (existingEdges.length == 0) {
                                         // Only insert if no edge exists yet
-                                        String weightStr = JOptionPane.showInputDialog(frame, "Enter Link Cost:");
-                                        int weight = Integer.parseInt(weightStr);
+                                        final String weightStr = JOptionPane.showInputDialog(frame, "Enter Link Cost larger than 0:");
+                                        final int weight = Integer.parseInt(weightStr);
+
+                                        // Only allow > 1 for Dih algo
+                                        if (weight <= 0) {
+                                            updateStatus("Invalid Link Cost: " + weight + ", weight must be greater than 0.");
+                                            return;
+                                        }
                                         controller.insertEdge(from, to, weight);
                                         form.graph.insertEdge(form.graph.getDefaultParent(), null, weight, fromNode, toNode, "");
                                     }
