@@ -48,7 +48,7 @@ public class DijkstraAlgo {
 
     private void run(boolean isSingleStep) {
         if (ended) {
-            display.updateStatus("The dijkstra algorithm has already ended!");
+            display.logWarn("The dijkstra algorithm has already ended!");
             return;
         }
         int totalNodesSize = network.getAllNodes().size();
@@ -65,7 +65,7 @@ public class DijkstraAlgo {
                 display.highlightVertex(cell, Color.yellow, false);
             // single step
             if (isSingleStep && !unvisitedNode.equals(srcNode)) {
-                display.updateStatus("Found " + unvisitedNode + ": Path: " + getPath(unvisitedNode) + " Cost: " + distancesMap.get(unvisitedNode));
+                display.logInfo("Found " + unvisitedNode + ": Path: " + getPath(unvisitedNode) + " Cost: " + distancesMap.get(unvisitedNode));
                 if (visitedList.size() < totalNodesSize) return;
             }
         }
@@ -138,6 +138,6 @@ public class DijkstraAlgo {
                    .append('\n');
         }
 
-        display.updateStatus(builder.toString());
+        display.logInfo(builder.toString());
     }
 }

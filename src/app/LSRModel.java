@@ -55,8 +55,8 @@ public class LSRModel {
             return true;
         }
         else {
-            display.updateStatus("error in removeEdge: removeEdge fail at least in one side");
-            display.updateStatus("error in removeEdge: edgesRemoved " + edgesRemoved);
+            display.logErr("removeEdge fail at least in one side");
+            display.logErr("edgesRemoved " + edgesRemoved);
             return false;
         }
     }
@@ -69,7 +69,7 @@ public class LSRModel {
 
         // return false if node not exist
         if (edges == null) {
-            display.updateStatus("error in removeNode: node not found");
+            display.logErr("removeNode: node not found");
             return false;
         }
         List<String> edgeList = new ArrayList<>(edges.keySet());
@@ -77,7 +77,7 @@ public class LSRModel {
         for (String neighbor : edgeList) {
             boolean edgeRemoved = removeEdge(node, neighbor);
             if (!edgeRemoved) {
-                display.updateStatus("error removing edge between " + node + " and " + neighbor);
+                display.logErr("error removing edge between " + node + " and " + neighbor);
             }
         }
 
@@ -91,7 +91,7 @@ public class LSRModel {
     public Map<String, Integer> getEdge(String node) {
         Map<String, Integer> neighborsInNode = network.get(node);
         if (neighborsInNode == null ){
-            display.updateStatus("error in getEdge: node " + node + " not exist");
+            display.logErr("getEdge: node " + node + " not exist");
             return null;
         }
         return neighborsInNode;

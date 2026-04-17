@@ -30,7 +30,7 @@ public class LSRController {
         });
         display.onComputeAll(() -> {
             if (algo == null) {
-                display.updateStatus("Not performing action: Please select a file and starting node first.");
+                display.logWarn("Not performing action, please select a file and starting node first.");
                 return;
             }
             algo.computeALl();
@@ -41,7 +41,7 @@ public class LSRController {
         });
         display.onSingleStep(() -> {
             if (algo == null) {
-                display.updateStatus("Not performing action: Please select a file and starting node first.");
+                display.logWarn("Not performing action, please select a file and starting node first.");
                 return;
             }
             algo.singleStep();
@@ -80,13 +80,13 @@ public class LSRController {
     public boolean loadLSAFile(final File file) {
 
         if (!file.exists() || file.isDirectory()) {
-            display.updateStatus("Error in loadLSAFile: %s is not a file or does not exists.".formatted(file.getAbsolutePath()));
+            display.logErr("loadLSAFile: %s is not a file or does not exist.".formatted(file.getAbsolutePath()));
             display.setFileState(FileProcessState.ERROR);
             return false;
         }
 
         if (!file.getName().endsWith(".lsa")) {
-            display.updateStatus("Error in loadLSAFile: %s is not a .lsa file".formatted(file.getAbsolutePath()));
+            display.logErr("loadLSAFile: %s is not a .lsa file".formatted(file.getAbsolutePath()));
             display.setFileState(FileProcessState.ERROR);
             return false;
         }
@@ -108,7 +108,7 @@ public class LSRController {
             display.setFileState(FileProcessState.LOADED);
             this.file = file;
         } catch (IOException e) {
-            display.updateStatus("Error parsing line: %s".formatted(line));
+            display.logErr("Error parsing line: %s".formatted(line));
             display.clearFileContent();
             display.setFileState(FileProcessState.ERROR);
             display.resetSelectOptions();
@@ -118,7 +118,7 @@ public class LSRController {
             return false;
         }
 
-        display.updateStatus("Loaded network from %s".formatted(file.getAbsolutePath()));
+        display.logInfo("Loaded network from %s".formatted(file.getAbsolutePath()));
         return true;
     }
 
@@ -161,7 +161,7 @@ public class LSRController {
                 }
             }
         } catch (Exception e) {
-            display.updateStatus("Error when loading network: " + e.getMessage());
+            display.logErr("Error when loading network: " + e.getMessage());
         } finally {
             graph.getModel().endUpdate();
         }
@@ -222,18 +222,18 @@ public class LSRController {
             display.clearFileContent();
             display.printFileContent(content.toString());
         } catch (IOException e) {
-            display.updateStatus("Error while writing file: %s".formatted(file.getAbsolutePath()));
+            display.logErr("Error while writing file: %s".formatted(file.getAbsolutePath()));
             display.clearFileContent();
             return;
         }
 
-        display.updateStatus("Saved network to: %s".formatted(file.getAbsolutePath()));
+        display.logInfo("Saved network to: %s".formatted(file.getAbsolutePath()));
     }
 
     public void insertEdge(String from, String to, int weight) {
         network.addEdge(from, to, weight);
         saveFile();
-        display.updateStatus("Link " + from + "-" + to + " (cost:" + weight + ") added and saved");
+        display.logInfo("Link " + from + "-" + to + " (cost:" + weight + ") added and saved");
     }
 
     public Object getNodeCell(String node) {
@@ -256,9 +256,9 @@ public class LSRController {
             }
             display.addSourceOption(nodeId);
             saveFile();
-            display.updateStatus("Node " + nodeId + " created.");
+            display.logInfo("Node " + nodeId + " created.");
         } else {
-            display.updateStatus("Node " + nodeId + " already exists.");
+            display.logErr("Node " + nodeId + " already exists.");
         }
     }
 
@@ -271,9 +271,9 @@ public class LSRController {
                 if (network.removeNode(id)) {
                     graph.removeCells(new Object[]{cell}, true);
                     vertexMap.remove(id);
-                    display.updateStatus("Node " + id + " removed.");
+                    display.logInfo("Node " + id + " removed.");
                 }
-                else display.updateStatus("Node " + id + " remove failed.");
+                else display.logErr("Node " + id + " remove failed.");
 
             } else if (graph.getModel().isEdge(cell)) {
                 com.mxgraph.model.mxCell edge = (com.mxgraph.model.mxCell) cell;
@@ -281,13 +281,13 @@ public class LSRController {
                 String to = (String) edge.getTarget().getValue();
                 if (network.removeEdge(from, to)) {
                     graph.removeCells(new Object[]{cell}, true);
-                    display.updateStatus("Edge " + from + " to " + to + " removed.");
+                    display.logInfo("Edge " + from + " to " + to + " removed.");
                 }
-                else display.updateStatus("Edge " + from + " to " + to + " remove failed.");
+                else display.logErr("Edge " + from + " to " + to + " remove failed.");
             }
             saveFile();
         } catch (Exception ex) {
-            display.updateStatus("Error while trying to remove node " + cell + ": " + ex.getMessage());
+            display.logErr("Error while trying to remove node " + cell + ": " + ex.getMessage());
         } finally {
             graph.getModel().endUpdate();
             display.refreshGraph();

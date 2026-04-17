@@ -10,6 +10,10 @@ import com.mxgraph.view.mxGraph;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
@@ -24,6 +28,8 @@ public final class LSRDisplay {
     private boolean graphLocked;
     private mxGraphComponent graphComponent;private final mxGraphModel model;
     private Object firstVertexForEdge = null;
+    private final StyledDocument styledDoc;
+    private final Style docStyle;
 
     public LSRDisplay(String title) {
         FlatIntelliJLaf.setup();
@@ -32,6 +38,8 @@ public final class LSRDisplay {
         form = new LSRDisplayForm();
         frame.setContentPane(form.contentPanel);
 
+        styledDoc = form.statusTextPane.getStyledDocument();
+        docStyle = form.statusTextPane.addStyle("StatusStyle", null);
         form.graph = new mxGraph();
         this.model = (mxGraphModel) form.graph.getModel();
         this.graphLocked = false;
@@ -81,7 +89,7 @@ public final class LSRDisplay {
             mxCircleLayout layout = new mxCircleLayout(form.graph);
             layout.execute(form.graph.getDefaultParent());
         } catch (Exception e) {
-            updateStatus("Error packing graph: " + e.getMessage());
+            logErr("Error packing graph: " + e.getMessage());
         }
         frame.pack();
     }
@@ -154,9 +162,9 @@ public final class LSRDisplay {
                         // Clicked a vertex: Link logic
                         if (firstVertexForEdge == null) {
                             firstVertexForEdge = cell;
-                            updateStatus("Selected " + model.getValue(cell) + ". Double click another node to link.");
+                            logInfo("Selected " + model.getValue(cell) + ". Double click another node to link.");
                         } else if (firstVertexForEdge.equals(cell)) {
-                            updateStatus("Node " + model.getValue(cell) + " is same as previous node. Please select another node.");
+                            logWarn("Node " + model.getValue(cell) + " is same as previous node. Please select another node.");
                         }
                         else {
                             try {
@@ -175,7 +183,7 @@ public final class LSRDisplay {
 
                                         // Only allow > 1 for Dih algo
                                         if (weight <= 0) {
-                                            updateStatus("Invalid Link Cost: " + weight + ", weight must be greater than 0.");
+                                            logErr("Invalid Link Cost: " + weight + ", weight must be greater than 0.");
                                             return;
                                         }
                                         controller.insertEdge(from, to, weight);
@@ -183,7 +191,7 @@ public final class LSRDisplay {
                                     }
                                 }
                             } catch (NumberFormatException ex) {
-                                updateStatus("Invalid cost.");
+                                logErr("Invalid cost.");
                             }
                             firstVertexForEdge = null; // Reset selection
                         }
@@ -203,7 +211,6 @@ public final class LSRDisplay {
                 if (graphLocked) return;
                 Object cell = graphComponent.getCellAt(e.getX(), e.getY());
 
-                mxGraph graph = form.graph;
                 selectNode(cell);
                 if (cell != null) {
                     if (model.isVertex(cell)) {
@@ -270,12 +277,35 @@ public final class LSRDisplay {
         form.fileTextArea.setText(null);
     }
 
-    public void updateStatus(final String message) {
-        form.statusTextArea.insert(message + '\n', 0);
+    private void updateStatus(final String message) {
+        try {
+            styledDoc.insertString(0,message + '\n', docStyle);
+        } catch (BadLocationException ex) {
+            System.err.println("Error in inserting to status: " + message + "\n" + ex);
+        }
+    }
+
+    private static final Color WARN_COLOR = new Color(191, 128, 2);
+    private static final Color INFO_COLOR = Color.black;
+    private static final Color ERR_COLOR = new Color(191, 2, 2);
+
+    public void logWarn(final String warn) {
+        StyleConstants.setForeground(docStyle, WARN_COLOR);
+        updateStatus("WARNING: " + warn);
+    }
+
+    public void logInfo(final String info) {
+        StyleConstants.setForeground(docStyle, INFO_COLOR);
+        updateStatus("INFO: " + info);
+    }
+
+    public void logErr(final String errMsg) {
+        StyleConstants.setForeground(docStyle, ERR_COLOR);
+        updateStatus("ERROR: " + errMsg);
     }
 
     public void clearStatus() {
-        form.statusTextArea.setText(null);
+        form.statusTextPane.setText(null);
     }
 
     private void addEvent(final JButton component, final Runnable callback) {
