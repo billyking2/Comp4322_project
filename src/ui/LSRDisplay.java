@@ -155,7 +155,7 @@ public final class LSRDisplay {
 
                 // --- DOUBLE LEFT CLICK: Add Vertex or Create Edge ---
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
-                    model.beginUpdate();
+
                     if (cell == null) {
                         // Clicked empty space: Add new Vertex
                         String name = JOptionPane.showInputDialog(frame, "New Node Name:");
@@ -210,7 +210,6 @@ public final class LSRDisplay {
                             firstVertexForEdge = null; // Reset selection
                         }
                     }
-                    model.endUpdate();
                     refreshGraph();
                 }
             }
