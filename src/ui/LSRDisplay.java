@@ -188,6 +188,9 @@ public final class LSRDisplay {
                                         }
                                         controller.insertEdge(from, to, weight);
                                         form.graph.insertEdge(form.graph.getDefaultParent(), null, weight, fromNode, toNode, "");
+                                    } else {
+                                        logErr("Edge between " + from + " - " + to + " already exists.");
+                                        return;
                                     }
                                 }
                             } catch (NumberFormatException ex) {
