@@ -59,7 +59,7 @@ public class LSRController {
             }
             this.algo = new DijkstraAlgo(this, n, display);
             display.selectNode(vertexMap.get(n));
-            display.highlightCell(vertexMap.get(n));
+            display.highlightVertex(vertexMap.get(n));
         });
         display.onReset(this::reset);
     }
@@ -70,7 +70,7 @@ public class LSRController {
         display.clearTopologyUpdates();
         display.clearStatus();
         display.setFileState(FileProcessState.REMOVED);
-        display.resetSelection();
+        display.resetSelectOptions();
 
         this.algo = null;
         this.network = null;
@@ -105,7 +105,7 @@ public class LSRController {
             display.updateStatus("Error parsing line: %s".formatted(line));
             display.clearFileContent();
             display.setFileState(FileProcessState.ERROR);
-            display.resetSelection();
+            display.resetSelectOptions();
 
             network = null;
             this.file = null;
@@ -127,9 +127,7 @@ public class LSRController {
         graph.getModel().beginUpdate();
         try {
             // 2. First Pass: Create all vertices and store them in the map
-            for (int i = 0; i < nodes.length; ++i) {
-                String nodeName = nodes[i];
-
+            for (String nodeName : nodes) {
                 Object vertex = graph.insertVertex(parent, null, nodeName, 0, 0, 40, 40);
                 vertexMap.put(nodeName, vertex);
             }

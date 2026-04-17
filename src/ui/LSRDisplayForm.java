@@ -11,9 +11,6 @@ public final class LSRDisplayForm {
     JButton loadFileButton;
     JButton resetButton;
     JPanel topUpdatePanel;
-    JTextField nodeAddField;
-    JTextField nodeDelField;
-    JTextField nodeBrokenField;
     JPanel filePanel;
     JLabel statusLabel;
     JTextArea fileTextArea;

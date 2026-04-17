@@ -16,10 +16,7 @@ public class LSRModel {
 
     // add new node (add success return true)
     public boolean addNode(String nodeId) {
-        if (network.putIfAbsent(nodeId, new HashMap<>()) == null){
-            return true;
-        }
-        return false;
+        return network.putIfAbsent(nodeId, new HashMap<>()) == null;
     }
 
     // add bidirectional edge

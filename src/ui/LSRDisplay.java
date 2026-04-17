@@ -22,8 +22,7 @@ public final class LSRDisplay {
     private final LSRDisplayForm form;
     private final JFileChooser chooser;
     private boolean graphLocked;
-    private mxGraphComponent graphComponent;
-    private mxGraphModel model;
+    private mxGraphComponent graphComponent;private final mxGraphModel model;
     private Object firstVertexForEdge = null;
 
     public LSRDisplay(String title) {
@@ -48,7 +47,7 @@ public final class LSRDisplay {
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setFileFilter(new FileNameExtensionFilter("LSA Files", "lsa"));
 
-        this.resetSelection();
+        this.resetSelectOptions();
 
         addEvent(form.helpButton, () -> {
 
@@ -147,19 +146,18 @@ public final class LSRDisplay {
                         if (name != null && !name.trim().isEmpty()) {
                             controller.addNewNode(name, e.getX(), e.getY());
                         }
-                    } else if (form.graph.getModel().isVertex(cell)) {
+                    } else if (model.isVertex(cell)) {
                         // Clicked a vertex: Link logic
                         if (firstVertexForEdge == null) {
                             firstVertexForEdge = cell;
-                            updateStatus("Selected " + form.graph.getModel().getValue(cell) + ". Double click another node to link.");
+                            updateStatus("Selected " + model.getValue(cell) + ". Double click another node to link.");
                         } else if (firstVertexForEdge.equals(cell)) {
                             updateStatus("Node " + model.getValue(cell) + " is same as previous node. Please select another node.");
                         }
                         else {
-                            Object secondVertex = cell;
                             try {
                                 String from = (String) model.getValue(firstVertexForEdge);
-                                String to = (String) model.getValue(secondVertex);
+                                String to = (String) model.getValue(cell);
                                 Object fromNode = controller.getNodeCell(from);
                                 Object toNode = controller.getNodeCell(to);
                                 if (fromNode != null && toNode != null) {
@@ -201,7 +199,7 @@ public final class LSRDisplay {
                     if (model.isVertex(cell)) {
                         String nodeName = (String) model.getValue(cell);
                         form.sourceComboBox.setSelectedItem(nodeName);
-                        highlightCell(cell);
+                        highlightVertex(cell);
                     }
                     else if (model.isEdge(cell)) {
                         form.sourceComboBox.setSelectedIndex(0);
@@ -214,11 +212,11 @@ public final class LSRDisplay {
         });
     }
 
-    public void highlightCell(Object cell) {
-        this.highlightCell(cell, true);
+    public void highlightVertex(Object cell) {
+        this.highlightVertex(cell, true);
     }
 
-    public void highlightCell(Object cell, String colorHex, boolean clearOtherColors) {
+    public void highlightVertex(Object cell, String colorHex, boolean clearOtherColors) {
         if (clearOtherColors) clearHighlight();
         model.beginUpdate();
 
@@ -230,17 +228,16 @@ public final class LSRDisplay {
         }
     }
 
-    public void highlightCell(Object cell, boolean clearOtherColors) {
-        this.highlightCell(cell, Color.green, clearOtherColors);
+    public void highlightVertex(Object cell, boolean clearOtherColors) {
+        this.highlightVertex(cell, Color.green, clearOtherColors);
     }
 
-    public void highlightCell(Object cell, Color color, boolean clearOtherColors) {
+    public void highlightVertex(Object cell, Color color, boolean clearOtherColors) {
         String hexCode = String.format("#%06X", (0xFFFFFF & color.getRGB()));
-        this.highlightCell(cell, hexCode, clearOtherColors);
+        this.highlightVertex(cell, hexCode, clearOtherColors);
     }
 
     public void clearHighlight() {
-
         model.beginUpdate();
         form.graph.setCellStyles(mxConstants.STYLE_FILLCOLOR, "#C3D9FF",
                 form.graph.getChildVertices(form.graph.getDefaultParent()));
@@ -249,17 +246,6 @@ public final class LSRDisplay {
 
     public void addGraphComponent(mxGraphComponent graphComponent) {
         form.topUpdatePanel.add(graphComponent);
-    }
-
-    @Deprecated
-    public void showNodeInfo(final String message, final NodeInfo infoType) {
-        final JTextField textField = switch (infoType) {
-            case NODE_ADD -> form.nodeAddField;
-            case NODE_DELETE -> form.nodeDelField;
-            case NODE_LINK_BROKEN -> form.nodeBrokenField;
-        };
-
-        textField.setText(message);
     }
 
     public void printFileLine(final String fileLine) {
@@ -333,16 +319,12 @@ public final class LSRDisplay {
         form.graph.removeCells(form.graph.getChildCells(form.graph.getDefaultParent()), true);
         model.endUpdate();
 
-        this.graphComponent.refresh();
-        // Refresh the UI to show the empty space
+        graphComponent.refresh();
         form.topUpdatePanel.revalidate();
         form.topUpdatePanel.repaint();
-//        form.nodeAddField.setText(null);
-//        form.nodeDelField.setText(null);
-//        form.nodeBrokenField.setText(null);
     }
 
-    public void resetSelection() {
+    public void resetSelectOptions() {
         form.sourceComboBox.setEnabled(false);
         form.sourceComboBox.removeAllItems();
         form.sourceComboBox.addItem("<none>");

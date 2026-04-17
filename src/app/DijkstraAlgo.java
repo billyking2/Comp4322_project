@@ -8,14 +8,14 @@ import java.util.List;
 
 public class DijkstraAlgo {
 
-    private LSRModel network;
-    private String srcNode;
-    private Map<String, Integer> distancesMap;
-    private Map<String, String> prevNodes;
-    private Set<String> visitedList;
+    private final LSRModel network;
+    private final String srcNode;
+    private final Map<String, Integer> distancesMap;
+    private final Map<String, String> prevNodes;
+    private final Set<String> visitedList;
     private final LSRDisplay display;
     private boolean started = false, ended = false;
-    private LSRController control;
+    private final LSRController control;
 
     public DijkstraAlgo(LSRController control, String sourceNode, final LSRDisplay display) {
         this.control = control;
@@ -62,7 +62,7 @@ public class DijkstraAlgo {
             updateNeighbors(unvisitedNode);
             Object cell = control.getNodeCell(unvisitedNode);
             if (!unvisitedNode.equals(srcNode))
-                display.highlightCell(cell, Color.yellow, false);
+                display.highlightVertex(cell, Color.yellow, false);
             // single step
             if (isSingleStep && !unvisitedNode.equals(srcNode)) {
                 display.updateStatus("Found " + unvisitedNode + ": Path: " + getPath(unvisitedNode) + " Cost: " + distancesMap.get(unvisitedNode));
