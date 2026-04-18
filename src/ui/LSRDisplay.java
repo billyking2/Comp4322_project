@@ -414,6 +414,7 @@ public final class LSRDisplay {
         graphComponent.refresh();
         form.topUpdatePanel.revalidate();
         form.topUpdatePanel.repaint();
+        this.graphLocked = true;
     }
 
     public void resetSelectOptions() {
