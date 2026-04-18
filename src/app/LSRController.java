@@ -26,7 +26,10 @@ public class LSRController {
 
         display.onSelectFile(f -> {
             boolean success = this.loadLSAFile(f);
-            if (success) this.displayGraph();
+            if (success) {
+                display.clearTopologyUpdates();
+                this.displayGraph();
+            }
         });
         display.onComputeAll(() -> {
             if (algo == null) {
