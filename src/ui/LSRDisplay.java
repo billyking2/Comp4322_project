@@ -6,6 +6,7 @@ import com.mxgraph.layout.*;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.model.mxGraphModel;
 import com.mxgraph.util.mxConstants;
+import com.mxgraph.util.mxRectangle;
 import com.mxgraph.view.mxGraph;
 
 import javax.swing.*;
@@ -44,7 +45,7 @@ public final class LSRDisplay {
         docStyle = form.statusTextPane.addStyle("StatusStyle", null);
         form.graph = new mxGraph();
         this.model = (mxGraphModel) form.graph.getModel();
-        this.graphLocked = false;
+        this.graphLocked = true;
         initGraph();
 
         frame.setLocationRelativeTo(null);
@@ -90,8 +91,26 @@ public final class LSRDisplay {
 
     public void pack() {
         try {
-            mxCircleLayout layout = new mxCircleLayout(form.graph);
+            var layout = new mxFastOrganicLayout(form.graph);
+            layout.setMaxIterations(100);
+            layout.setMaxDistanceLimit(2);
             layout.execute(form.graph.getDefaultParent());
+
+            mxRectangle bounds = form.graph.getGraphBounds();
+
+            // Move all cells by the negative offset of the bounds
+            form.graph.getModel().beginUpdate();
+            try {
+                form.graph.moveCells(
+                        form.graph.getChildCells(form.graph.getDefaultParent()),
+                        -bounds.getX(),
+                        -bounds.getY()
+                );
+            } finally {
+                form.graph.getModel().endUpdate();
+            }
+
+            refreshGraph();
         } catch (Exception e) {
             logErr("Error packing graph: " + e.getMessage());
         }
@@ -155,7 +174,6 @@ public final class LSRDisplay {
 
                 // --- DOUBLE LEFT CLICK: Add Vertex or Create Edge ---
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
-
                     if (cell == null) {
                         // Clicked empty space: Add new Vertex
                         String name = JOptionPane.showInputDialog(frame, "New Node Name:");
