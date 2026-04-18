@@ -25,9 +25,12 @@ public class LSRController {
         display.setupMouseInteractions(this);
 
         display.onSelectFile(f -> {
+            display.resetSelectOptions();
             boolean success = this.loadLSAFile(f);
             if (success) {
                 display.clearTopologyUpdates();
+                this.algo = null;
+                this.vertexMap.clear();
                 this.displayGraph();
             }
         });
